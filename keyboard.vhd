@@ -3,116 +3,126 @@ use ieee.std_logic_1164.all;
 USE ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-ENTITY Keyboard IS PORT (
-	datain, clkin: 	IN std_logic ; 	-- PS2 clk and data
-	fclk, rst: 			IN std_logic ;  		-- filter clock
-	scancode: 			OUT std_logic_vector(7 downto 0) -- scan code signal output
+entity Keyboard is
+port (
+	datain, clkin : in std_logic ; -- PS2 clk and data
+	fclk, rst : in std_logic ;  -- filter clock
+--	fok : out std_logic ;  -- data output enable signal
+	scancode : out std_logic_vector(7 downto 0) -- scan code signal output
 	) ;
-END;
+end Keyboard ;
 
-ARCHITECTURE rtl OF Keyboard IS
-TYPE state_type IS (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
-SIGNAL data, clk, clk1, clk2, odd, fok : std_logic ; -- 毛刺处理内部信号, odd为奇偶校验
-SIGNAL code : std_logic_vector(7 downto 0) ; 
-SIGNAL state : state_type ;
-BEGIN
+architecture rtl of Keyboard is
+type state_type is (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
+signal data, clk, clk1, clk2, odd: std_logic ; -- 毛刺处理内部信号, odd为奇偶校验
+signal code : std_logic_vector(7 downto 0) ; 
+signal fok: std_logic_vector(0 to 1);
+signal state : state_type ;
+begin
     -- 去除尖峰
-	clk1 <= clkin WHEN rising_edge(fclk) ;
-	clk2 <= clk1 WHEN rising_edge(fclk) ;
+	clk1 <= clkin when rising_edge(fclk) ;
+	clk2 <= clk1 when rising_edge(fclk) ;
 	clk <= (not clk1) and clk2 ;
 	
-	data <= datain WHEN rising_edge(fclk) ;
+	data <= datain when rising_edge(fclk) ;
 	
     -- 偶校验
 	odd <= code(0) xor code(1) xor code(2) xor code(3) 
 		xor code(4) xor code(5) xor code(6) xor code(7) ;
 	
-	scancode <= code WHEN fok = '1' ;
-	
-	PROCESS(rst, fclk)
-	BEGIN
-		IF rst = '1' THEN
+	scancode<=code when fok(0)='1';
+		
+	process(rst, fclk)
+	begin
+		if rst = '1' then
 			state <= delay ;
 			code <= (others => '0') ;
-			fok <= '0' ;
-		ELSIF rising_edge(fclk) THEN
-			fok <= '0' ;
-			CASE state IS
-				WHEN delay =>
+			fok <= "00" ;
+		elsif rising_edge(fclk) then
+			fok(0)<='0';
+			case state is
+				when delay =>
 					state <= start ;
-				WHEN start =>
-					IF clk = '1' THEN
-						IF data = '0' THEN
+				when start =>
+					if clk = '1' then
+						if data = '0' then
 							state <= d0 ;
-						ELSE
+						else
 							state <= delay ;
-						END IF;
-					END IF;
-				WHEN d0 =>
-					IF clk = '1' THEN
+						end if ;
+					end if;
+				when d0 =>
+					if clk = '1' then
 						code(0) <= data ;
 						state <= d1 ;
-					END IF;
-				WHEN d1 =>
-					IF clk = '1' THEN
+					end if ;
+				when d1 =>
+					if clk = '1' then
 						code(1) <= data ;
 						state <= d2 ;
-					END IF;
-				WHEN d2 =>
-					IF clk = '1' THEN
+					end if ;
+				when d2 =>
+					if clk = '1' then
 						code(2) <= data ;
 						state <= d3 ;
-					END IF;
-				WHEN d3 =>
-					IF clk = '1' THEN
+					end if ;
+				when d3 =>
+					if clk = '1' then
 						code(3) <= data ;
 						state <= d4 ;
-					END IF;
-				WHEN d4 =>
-					IF clk = '1' THEN
+					end if ;
+				when d4 =>
+					if clk = '1' then
 						code(4) <= data ;
 						state <= d5 ;
-					END IF;
-				WHEN d5 =>
-					IF clk = '1' THEN
+					end if ;
+				when d5 =>
+					if clk = '1' then
 						code(5) <= data ;
 						state <= d6 ;
-					END IF ;
-				WHEN d6 =>
-					IF clk = '1' THEN
+					end if ;
+				when d6 =>
+					if clk = '1' then
 						code(6) <= data ;
 						state <= d7 ;
-					END IF ;
-				WHEN d7 =>
-					IF clk = '1' THEN
+					end if ;
+				when d7 =>
+					if clk = '1' then
 						code(7) <= data ;
 						state <= parity ;
-					END IF ;
+					end if ;
 				WHEN parity =>
-					IF clk = '1' THEN
-						IF (data xor odd) = '1' THEN
+					IF clk = '1' then
+						if (data xor odd) = '1' then
 							state <= stop ;
-						ELSE
+						else
 							state <= delay ;
-						END IF;
+						end if;
 					END IF;
 
 				WHEN stop =>
-					IF clk = '1' THEN
-						IF data = '1' THEN
+					IF clk = '1' then
+						if data = '1' then
 							state <= finish;
-						ELSE
+						else
 							state <= delay;
-						END IF;
+						end if;
 					END IF;
 
 				WHEN finish =>
 					state <= delay ;
-					fok <= '1' ;
-				WHEN others =>
+					if fok(1)='0' then
+						fok(0) <= '1' ;
+					end if;
+					if code="11110000" then
+						fok(1)<='1';
+					else
+						fok(1)<='0';
+					end if;
+				when others =>
 					state <= delay ;
-			END CASE ; 
-		END IF ;
-	END PROCESS ;
-END rtl ;
+			end case ; 
+		end if ;
+	end process ;
+end rtl ;
 

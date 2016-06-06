@@ -5,7 +5,7 @@ USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY game IS PORT (
     clock, enable:              IN STD_LOGIC;
-	 pad_state:                  IN STD_LOGIC_VECTOR(7 downto 0);
+	pad_state:                  IN STD_LOGIC_VECTOR(7 downto 0);
     map_data:                   IN STD_LOGIC_VECTOR(2 downto 0);
     map_read_X, map_read_Y:     OUT STD_LOGIC_VECTOR(4 downto 0);
     out_player_X, out_player_Y: OUT STD_LOGIC_VECTOR(8 downto 0)
@@ -60,15 +60,15 @@ BEGIN
                     IF move_left /= move_right THEN
                         IF move_left = '1' THEN
                             IF player_X /= "000000000" THEN
-                                player_dX <= "111111111";
+                                player_dX <= "111111111"; -- -1
                             ELSE
-                                player_dX <= "000000000";
+                                player_dX <= "000000000"; -- 0
                             END IF;
                         ELSIF move_right = '1' THEN
                             IF player_X /= "111101111" THEN
-                                player_dX <= "000000001";
+                                player_dX <= "000000001"; -- 1
                             ELSE
-                                player_dX <= "000000000";
+                                player_dX <= "000000000"; -- 0
                             END IF;
                         END IF;
                     ELSIF move_left = '0' AND move_right = '0' THEN

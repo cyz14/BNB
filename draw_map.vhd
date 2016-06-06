@@ -188,9 +188,12 @@ BEGIN
 		when others => tile_data <= "000";
 	end case;
 	--tile_data <= CONV_STD_LOGIC_VECTOR(, 3);
-
-	red <= tile_data(2);
-	green <= tile_data(1);
-	blue <= tile_data(0);
+	END PROCESS;
+	
+	PROCESS(tile_data)
+	BEGIN
+		red <= tile_data(2);
+		green <= tile_data(1);
+		blue <= tile_data(0);
 	END PROCESS;
 END bhv;
