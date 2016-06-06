@@ -1,0 +1,9 @@
+*.vhd.bak
+simulation/
+db/
+incremental_db/
+*.cdf
+*.jdi
+*.qsf
+*.mif
+output_files/
