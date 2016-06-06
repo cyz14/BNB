@@ -6,4 +6,8 @@ incremental_db/
 *.jdi
 *.qsf
 *.mif
+*.cmp
+*.qip
 output_files/
+greybox_tmp/
+img/*.bmp

@@ -73,9 +73,9 @@ BEGIN
 	BEGIN
 		IF rising_edge(clock) THEN
 			IF player_out = '1' THEN
-				red <= player_data(2) & "00";
+				red 	<= player_data(2) & "00";
 				green <= player_data(1) & "00";
-				blue <= player_data(0) & "00";
+				blue 	<= player_data(0) & "00";
 			END IF;
 		END IF;
 	END PROCESS;

@@ -10,7 +10,7 @@ ENTITY test IS PORT (
     timer_x, timer_y:     IN STD_LOGIC_VECTOR(4 downto 0);
 	 
 	 Q_tile_X, Q_tile_Y:	  				IN STD_LOGIC_VECTOR(4 downto 0);
-	 -- Q_tile_type:							OUT STD_LOGIC_VECTOR(0 to 1);
+	 Q_tile_type:							OUT STD_LOGIC_VECTOR(1 downto 0);
 	 
     out_player_X0, out_player_Y0:		OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
 	 out_player_X1, out_player_Y1:		OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
@@ -27,17 +27,14 @@ ARCHITECTURE game OF test IS
 	COMPONENT ram
 	PORT(
 			clock:			IN STD_LOGIC;
-			--query
-			Q_X, Q_Y:		IN STD_LOGIC_VECTOR(4 downto 0);
-			Q_S:				OUT STD_LOGIC_VECTOR(1 downto 0);
+			Q_X, Q_Y:		IN STD_LOGIC_VECTOR(4 downto 0); --query from top entity
+			Q_S:				OUT STD_LOGIC_VECTOR(1 downto 0);-- answer to top entity
 	--		Q_valid_in:		IN STD_LOGIC;
 	--		Q_valid_out:	BUFFER STD_LOGIC;
-			--query2
+
 			Q2_X, Q2_Y:		IN STD_LOGIC_VECTOR(4 downto 0);
 			Q2_S:				OUT STD_LOGIC_VECTOR(1 downto 0);
-			--read map
 			rst:				IN STD_LOGIC;
-			--change
 			place_X:			IN STD_LOGIC_VECTOR(4 downto 0);
 			place_Y:			IN STD_LOGIC_VECTOR(4 downto 0);
 			place:			IN STD_LOGIC;
@@ -48,7 +45,7 @@ ARCHITECTURE game OF test IS
 	);
     END COMPONENT;
 
-	TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, UPDATE, DONE);
+	TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, COLL_START_X, COLL_DETEC_X, COLL_START_Y, COLL_DETEC_Y, UPDATE, DONE);
 	SIGNAL state: STATE_TYPE;
 	
 	SIGNAL player_X0, player_Y0: 	STD_LOGIC_VECTOR(4 downto 0);
@@ -64,7 +61,6 @@ ARCHITECTURE game OF test IS
 	SIGNAL place, explode: 			STD_LOGIC;
 	
 	SIGNAL reset_game: 				STD_LOGIC;
-
 --    signal valid_out, valid_in: std_logic:='0';
 	
 	SIGNAL player_dX0, player_dY0:	STD_LOGIC_VECTOR(4 downto 0);
@@ -75,7 +71,6 @@ ARCHITECTURE game OF test IS
 	CONSTANT plus1:		STD_LOGIC_VECTOR(4 downto 0) := "00001";
 	CONSTANT zero4:		STD_LOGIC_VECTOR(3 downto 0) := "0000";
 	
-	SIGNAL q_x, q_y:		STD_LOGIC_VECTOR(4 downto 0);
 	SIGNAL q_s:				STD_LOGIC_VECTOR(1 downto 0);
 	SIGNAL q2_X, q2_Y:	STD_LOGIC_VECTOR(4 downto 0);
 	SIGNAL q2_S:			STD_LOGIC_VECTOR(1 downto 0);
@@ -155,8 +150,20 @@ BEGIN
 									 player_dX1 <= delta0;
 									 player_dY1 <= delta0;
                     END CASE;
-                    state <= UPDATE;
-                WHEN UPDATE =>
+                    state <= COLL_START_X;
+                WHEN COLL_START_X =>
+					 
+					     state <= COLL_DETEC_X;
+					 WHEN COLL_DETEC_X =>
+					 
+					     state <= COLL_START_Y;
+					 WHEN COLL_START_Y =>
+					 
+					     state <= COLL_DETEC_Y;
+					 WHEN COLL_DETEC_Y =>
+					 
+				        state <= UPDATE;
+					 WHEN UPDATE =>
                     IF reset_game = '1' AND reset = '0' THEN
                         player_X0 <= "00000";
                         player_Y0 <= "00000";
@@ -181,13 +188,13 @@ BEGIN
 	map_ram: ram PORT MAP(
 		clock => clock,
 		--query
-		Q_X => q_x, 
-		Q_Y => q_y,
+		Q_X => Q_tile_X, 
+		Q_Y => Q_tile_Y,
 		Q_S => q_s,
 --		Q_valid_in =>valid_in,
 --		Q_valid_out =>valid_out,
-		Q2_X => q_x, 
-		Q2_Y => q_y,
+		Q2_X => q2_x, 
+		Q2_Y => q2_y,
 		Q2_S => q2_s,
 		rst=>reset,
 		place_X => place_x0,
@@ -198,12 +205,14 @@ BEGIN
 		explode   => explode	
 	);
 
+	Q_tile_type <= q_s;
+	
 	out_player_X0 <= player_X0 & zero4;
 	out_player_Y0 <= player_Y0 & zero4;
 	out_player_X1 <= player_X1 & zero4;
 	out_player_Y1 <= player_Y1 & zero4;
 	
-	out_qs <= q_s;
+	out_qs <= q2_S;
 	out_place_x0 <= place_x0 & zero4;
 	out_place_y0 <= place_y0 & zero4;
 	

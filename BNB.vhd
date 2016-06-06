@@ -80,7 +80,7 @@ ARCHITECTURE BNB OF BNB IS
 		timer_x, timer_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
 
 		Q_tile_X, Q_tile_Y:	  					IN STD_LOGIC_VECTOR(4 downto 0);
-		-- Q_tile_type:							OUT STD_LOGIC_VECTOR(0 to 1);
+		Q_tile_type:								OUT STD_LOGIC_VECTOR(0 to 1);
 		 
 		out_player_X0, out_player_Y0:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
 		out_player_X1, out_player_Y1:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
@@ -104,11 +104,28 @@ ARCHITECTURE BNB OF BNB IS
 		q		: OUT STD_LOGIC_VECTOR (0 DOWNTO 0)
 	);
 	END COMPONENT;
+	
+	COMPONENT bubble_rom PORT (
+		address		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+		clock			: IN STD_LOGIC  := '1';
+		q				: OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
+	);
+	END COMPONENT;
+	
+	COMPONENT explo_rom PORT
+	(
+		address		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
+		clock			: IN STD_LOGIC  := '1';
+		q				: OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
+	);
+	END COMPONENT;
 
+	CONSTANT zero2:							STD_LOGIC_VECTOR(1 downto 0) := "00";
+	CONSTANT zero3:							STD_LOGIC_VECTOR(2 downto 0) := "000";
 	CONSTANT TOTAL_TIME:						STD_LOGIC_VECTOR(7 downto 0) := CONV_STD_LOGIC_VECTOR(120, 8);
-	CONSTANT background_r: 					STD_LOGIC_VECTOR(2 downto 0) := "000";
-	CONSTANT background_g: 					STD_LOGIC_VECTOR(2 downto 0) := "000";
-	CONSTANT background_b: 					STD_LOGIC_VECTOR(2 downto 0) := "000";
+	CONSTANT background_r: 					STD_LOGIC_VECTOR(2 downto 0) := zero3;
+	CONSTANT background_g: 					STD_LOGIC_VECTOR(2 downto 0) := zero3;
+	CONSTANT background_b: 					STD_LOGIC_VECTOR(2 downto 0) := zero3;
 	
 	constant player2_r    : STD_LOGIC_VECTOR(2 downto 0) := "000";
 	constant player2_g    : STD_LOGIC_VECTOR(2 downto 0) := "010";
@@ -132,7 +149,11 @@ ARCHITECTURE BNB OF BNB IS
 	SIGNAL scancode:							STD_LOGIC_VECTOR(7 downto 0);
 	SIGNAL key:									STD_LOGIC_VECTOR(3 downto 0);
 	
+	SIGNAL bub_data:							STD_LOGIC_VECTOR(2 downto 0);
+	SIGNAL explo_data:						STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL map_r, map_g, map_b: 			STD_LOGIC;
+	SIGNAL bub_r, bub_g, bub_b:			STD_LOGIC;
+	SIGNAL exp_r, exp_g, exp_b:			STD_LOGIC;
 	
 	-- world positon for current pixel
 	SIGNAL world_X, world_Y:				STD_LOGIC_VECTOR(8 downto 0);
@@ -153,6 +174,7 @@ ARCHITECTURE BNB OF BNB IS
 	SIGNAL map_read_X, map_read_Y:		STD_LOGIC_VECTOR(4 downto 0);
 	SIGNAL map_data: 							STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL map_state:							STD_LOGIC_VECTOR(1 downto 0);
+	SIGNAL inner_state:						STD_LOGIC_VECTOR(1 downto 0);
 	SIGNAL logic_enable:						STD_LOGIC;
 	
 	SIGNAL address_32:						STD_LOGIC_VECTOR(9 downto 0);
@@ -185,8 +207,8 @@ BEGIN
 	world_X <= H_count(9 downto 1);
 	world_Y <= V_count(9 downto 1);
 	
-	tile_X <= world_X(8 downto 4);
-	tile_Y <= world_Y(8 downto 4);
+	tile_X <= H_count(9 downto 5);
+	tile_Y <= V_count(9 downto 5);
 	
 	dmap: draw_map PORT MAP (
 		world_X  => world_X,
@@ -258,18 +280,18 @@ BEGIN
 	);
 	
 	test_logic: test PORT MAP(
-		clock => clock_25,
+		clock  => clock_25,
 		enable => logic_enable,
-		reset => reset,
-		key => key,
+		reset  => reset,
+		key 	 => key,
 		
-		timer => timer_s,
+		timer   => timer_s,
 		timer_x => timer_x,
 		timer_y => timer_y,
 		
 		Q_tile_X => map_read_X,
 		Q_tile_Y => map_read_Y,
-		-- Q_tile_type => map_state,
+		Q_tile_type => map_state,
 		
 		out_player_X0 => player_X0,
 		out_player_Y0 => player_Y0,
@@ -283,7 +305,7 @@ BEGIN
 		
 		out_explode_x0 => explode_X,
 		out_explode_y0 => explode_Y,
-		out_qs => map_state
+		out_qs => inner_state
 	);
 	
 	address_32 <= V_count(4 downto 0) & H_count(4 downto 0);
@@ -292,8 +314,27 @@ BEGIN
 		clock => clock_25,
 		q => q_dao
 	);
-	--process(t_vsync)
-	--begin
+	
+	bubble: bubble_rom PORT MAP (
+		address => address_32,
+		clock => clock_25,
+		q => bub_data
+	);
+	
+	explo: explo_rom PORT MAP (
+		address => address_32,
+		clock  => clock_25,
+		q => explo_data
+	);
+	
+	bub_r <= bub_data(2);
+	bub_g <= bub_data(1);
+	bub_b <= bub_data(0);
+	
+	exp_r <= explo_data(2);
+	exp_g <= explo_data(1);
+	exp_b <= explo_data(0);
+	
 	logic_enable <= not t_vsync;
 	
 	map_read_X <= tile_X WHEN video_on = '1';-- ELSE coll_read_X;
@@ -322,18 +363,18 @@ BEGIN
 					END IF;
 				ELSE
 					CASE map_state IS 
---						WHEN "01" =>
---							r <= 
---							g <=
---							b <= 
---						WHEN "10" =>
---							r <= 
---							g <=
---							b <= 
---						WHEN "11" =>
---							r <= 
---							g <=
---							b <= 
+						WHEN "01" =>
+							r <= map_r & zero2;
+							g <= map_g & zero2;
+							b <= map_b & zero2;
+						WHEN "10" =>
+							r <= bub_r & zero2;
+							g <= bub_g & zero2;
+							b <= bub_b & zero2;
+						WHEN "11" =>
+							r <= exp_r & zero2;
+							g <= exp_g & zero2;
+							b <= exp_b & zero2;
 						WHEN "00" => 
 							r <= map_r & "00";
 							g <= map_g & "00";

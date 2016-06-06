@@ -53,11 +53,11 @@ BEGIN
 
         IF valid_in = '1' THEN
             valid_2 <= '0';
-            check <= check_UL;
-            result <= '0';
+            check   <= check_UL;
+            result  <= '0';
             valid_0 <= '0';
-            read_X <= CONV_STD_LOGIC_VECTOR(0, 9);
-            read_Y <= CONV_STD_LOGIC_VECTOR(0, 9);
+            read_X  <= CONV_STD_LOGIC_VECTOR(0, 9);
+            read_Y  <= CONV_STD_LOGIC_VECTOR(0, 9);
         ELSIF valid_2 = '1' THEN
             valid_2 <= '0';
         ELSE
@@ -92,14 +92,12 @@ BEGIN
             -- Stage 1: Map memory fetch
             -- Handled by registered ROM in caller
             valid_1 <= valid_0;
-
             -- Stage 2: Generate collision result
             IF map_data /= "000" THEN
                 result <= '1';
             END IF;
             valid_2 <= valid_1;
         END IF;
-        
         END IF;
     END PROCESS;
 
