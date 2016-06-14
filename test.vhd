@@ -71,8 +71,6 @@ END COMPONENT;
 	CONSTANT plus1:					STD_LOGIC_VECTOR(4 downto 0) := "00001";
 	CONSTANT zero4:					STD_LOGIC_VECTOR(3 downto 0) := "0000";
 
-	SIGNAL q_x, q_y:				STD_LOGIC_VECTOR(4 downto 0);
-	SIGNAL q_s:						STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL q2_X, q2_Y:				STD_LOGIC_VECTOR(4 downto 0);
 	SIGNAL q2_S:   					STD_LOGIC_VECTOR(2 downto 0);
 
@@ -84,52 +82,7 @@ END COMPONENT;
 	SIGNAL sexplode:						STD_LOGIC;
  
 BEGIN
-	--EXPLOSION
---	process (clock)
---	begin
---		if clock'event and clock='1' then
---			IF enable = '1' THEN
---				case state is 
---					when READ_KEY =>
---						if timer0='1' then
---							explode_x0<=timer0_x;
---							explode_y0<=timer0_y;
---							explode<='1';
---						end if;
---					when others =>
---						explode<='0';
---				end case;
---			END IF;
---		end if;
---	end process;
- --PLACE
--- process (clock)
--- begin
--- if clock'event and clock='1' then
---		IF enable = '1' THEN
---   case state is 
---	when READ_KEY =>
---	 case key is
---	  
---	  when others =>
---	   null;
---	 end case;
---	when others =>
---	 place<='0';
---   end case;
---  END IF;
--- end if;
--- end process;
 
---	PROCESS(explode_tmp, explode_valid)
---	BEGIN
---		IF explode_valid = '1' THEN
---			explode <= explode_tmp;
---		ELSE 
---			explode <= '0';
---		END IF;
---	END PROCESS;
-	
 	PROCESS (clock)
 		VARIABLE scnt: integer :=0;
 	BEGIN
@@ -267,12 +220,17 @@ BEGIN
 	);
 	explode <= sexplode;
 	
+--	PROCESS (sexplode)
+--	BEGIN
+--	
+--	END PROCESS;
+	
 	map_ram: ram PORT MAP(
 	  clock => clock,
 	  --query
-	  Q_X => q_x, 
-	  Q_Y => q_y,
-	  Q_S => q_s,
+	  Q_X => Q_tile_X,
+	  Q_Y => Q_tile_Y,
+	  Q_S => Q_tile_type,
 	  Q2_X => q2_x, 
 	  Q2_Y => q2_y,
 	  Q2_S => q2_s,
@@ -289,9 +247,5 @@ BEGIN
  out_player_Y0 <= player_Y0 & zero4;
  out_player_X1 <= player_X1 & zero4;
  out_player_Y1 <= player_Y1 & zero4;
- 
- q_x <= Q_tile_X;
- q_y <= Q_tile_Y;
- Q_tile_type <= q_s;
 
 END game;

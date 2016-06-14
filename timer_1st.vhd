@@ -55,7 +55,7 @@ BEGIN
 					end if;
 				WHEN SEND =>
 					add := 1;
-					if cnt = 2300000 then
+					if cnt = 23000000 then
 						s_tmp <= '0';
 						state <= SWAIT;
 						tmp_x <= "00000";
