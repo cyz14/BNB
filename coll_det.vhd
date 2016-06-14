@@ -3,7 +3,7 @@ USE IEEE.STD_LOGIC_1164.all;
 USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
-ENTITU coll_det IS PORT (
+ENTITY coll_det IS PORT (
 	clock:					IN		STD_LOGIC;
 	valid_in:				IN		STD_LOGIC;
 	sprite_X, sprite_Y:	IN		STD_LOGIC_VECTOR(8 downto 0);

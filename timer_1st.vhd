@@ -4,36 +4,52 @@ USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY timer_1st IS PORT (
-		seconds    :    IN  std_logic_vector(7 downto 0);	-- total time
+		place		  :	 IN  std_logic;
+		valid_in	  :    IN  std_logic;
 		rst        :    IN  std_logic;
 		clk24      :    IN  std_logic; 							-- 24M clock
+		place_X	  :	 IN  std_logic_vector(4 downto 0);
+		place_Y	  :	 IN  std_logic_vector(4 downto 0);
+		out_place_X:    OUT std_logic_vector(4 downto 0);
+		out_place_Y:    OUT std_logic_vector(4 downto 0);
+		valid_out  :	 OUT std_logic;
 		s          :    OUT std_logic
 	);
-end timer_1st;
+END timer_1st;
 
 ARCHITECTURE timer_1st OF timer_1st IS
 	SIGNAL s_tmp : std_logic;
-	SIGNAL total : std_logic_vector(7 downto 0) := seconds;
+	TYPE timer_state IS (SWAIT, STIME);
+	SIGNAL state: timer_state := SWAIT;
+	
 BEGIN
    s <= s_tmp;
-	PROCESS(rst, clk24)
+	
+	PROCESS(rst, clk24, valid_in)
 		VARIABLE cnt : integer RANGE 0 TO 24000000;
 	BEGIN
 		IF rst = '0' THEN
 			cnt := 0;
+			s_tmp <= '0';
+			state <= SWAIT;
 		elsif rising_edge(clk24) then
-			cnt := cnt + 1;
-			total <= total - 1;
-			if cnt = 24000000 then
-				cnt := 0;
-				if total > 0 AND total < 10 then
-					s_tmp <= '1';
-				else
-					s_tmp <= '0';
-				end if;
-			else
-				s_tmp <= '0';
-			end if;
+			case state is 
+				when SWAIT => 
+					if valid_in = '1' then
+						cnt := 0;
+						s_tmp <= '0';
+						state <= STIME;
+						valid_out <= '1';
+					end if;
+				when STIME =>
+					cnt := cnt + 1;
+					if cnt = 23000000 then
+						--state <= SOFF;
+						valid_out <= '0';
+						s_tmp <= '1';
+					end if;
+			end case;
 		end if;
 	END PROCESS;
+	
 END timer_1st;

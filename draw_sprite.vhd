@@ -10,7 +10,8 @@ ENTITY draw_sprite IS PORT (
 	sprite_X1, sprite_Y1: 	IN STD_LOGIC_VECTOR(8 downto 0);
 	free0, free1:				IN STD_LOGIC;
 	red, green, blue:			OUT STD_LOGIC_VECTOR(2 downto 0);
-	active:             		OUT STD_LOGIC
+	active0:             		OUT STD_LOGIC;
+	active1:             		OUT STD_LOGIC
     );
 END;
 
@@ -33,7 +34,6 @@ ARCHITECTURE draw_sprite OF draw_sprite IS
 	SIGNAL player_data:				STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL player_out1:				STD_LOGIC;		-- = active
 	SIGNAL player_out0:				STD_LOGIC;
-	SIGNAl player_out:				STD_LOGIC;
 BEGIN
 	-- FIXME - Pipeline and register this for speed
 	sprite_x2 <= sprite_x0 + CONV_STD_LOGIC_VECTOR(16, 9);
@@ -49,43 +49,43 @@ BEGIN
 
 	player_out0 <= (in_x0 AND in_y0);
 	player_out1 <= (in_x1 AND in_y1);
-	player_out <= player_out0 OR player_out1;
-	active <= player_out;
+	active0 <= player_out0;
+	active1 <= player_out1;
 	
-	PROCESS(clock)
-	BEGIN
-		IF player_out0 = '1' THEN
-			IF free0 = '1' THEN
-				player_num <= "00";
-			ELSE 
-				player_num <= "10";
-			END IF;
-		ELSIF player_out1 = '1' THEN
-			IF free1 = '1' THEN
-				player_num <= "01";
-			ELSE
-				player_num <= "11";
-			END IF;
-		END IF;
-	END PROCESS;	
-	
-	PROCESS(clock, player_out)
-	BEGIN
-		IF rising_edge(clock) THEN
-			IF player_out = '1' THEN
-				red 	<= player_data(2) & "00";
-				green <= player_data(1) & "00";
-				blue 	<= player_data(0) & "00";
-			END IF;
-		END IF;
-	END PROCESS;
-		
-	player: player_rom PORT MAP (
-		clock => clock,
-		world_X => world_X,
-		world_Y => world_Y,
-		player_num => player_num,
-		data => player_data
-	);
+--	PROCESS(clock)
+--	BEGIN
+--		IF player_out0 = '1' THEN
+--			IF free0 = '1' THEN
+--				player_num <= "00";
+--			ELSE 
+--				player_num <= "10";
+--			END IF;
+--		ELSIF player_out1 = '1' THEN
+--			IF free1 = '1' THEN
+--				player_num <= "01";
+--			ELSE
+--				player_num <= "11";
+--			END IF;
+--		END IF;
+--	END PROCESS;	
+--	
+--	PROCESS(clock, player_out)
+--	BEGIN
+--		IF rising_edge(clock) THEN
+--			IF player_out = '1' THEN
+--				red 	<= player_data(2) & "00";
+--				green <= player_data(1) & "00";
+--				blue 	<= player_data(0) & "00";
+--			END IF;
+--		END IF;
+--	END PROCESS;
+--		
+--	player: player_rom PORT MAP (
+--		clock => clock,
+--		world_X => world_X,
+--		world_Y => world_Y,
+--		player_num => player_num,
+--		data => player_data
+--	);
 
 END draw_sprite;

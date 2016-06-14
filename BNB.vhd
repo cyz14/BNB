@@ -12,12 +12,25 @@ ENTITY BNB IS PORT (
 	move:					OUT	STD_LOGIC_VECTOR(6 downto 0);
 	key_data_in:		IN 	STD_LOGIC;
 	key_clock:			IN		STD_LOGIC;
-	out_player_x:		OUT		STD_LOGIC_VECTOR(8 downto 0);
-	out_player_y:		OUT		STD_LOGIC_VECTOR(8 downto 0)
+	timer_in:  in std_logic
 );
 END BNB;
 
 ARCHITECTURE BNB OF BNB IS
+	COMPONENT test PORT (
+    	clock, enable, reset: 					IN STD_LOGIC;
+		key:                  					IN STD_LOGIC_VECTOR(3 downto 0);
+		timer0:                					IN STD_LOGIC;
+		timer0_x, timer0_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
+
+		Q_tile_X, Q_tile_Y:	  					IN STD_LOGIC_VECTOR(4 downto 0);
+		Q_tile_type:								OUT STD_LOGIC_VECTOR(0 to 2);
+		 
+		out_player_X0, out_player_Y0:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
+		out_player_X1, out_player_Y1:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
+		out_free0, out_free1:					OUT STD_LOGIC
+	);
+	END COMPONENT;
 	
 	COMPONENT video_sync PORT (
 		clock:									IN STD_LOGIC;	-- should be 25M Hz
@@ -40,7 +53,8 @@ ARCHITECTURE BNB OF BNB IS
 		sprite_X1, sprite_Y1: 	IN 	STD_LOGIC_VECTOR(8 downto 0);
 		free0, free1:				IN 	STD_LOGIC;
 		red, green, blue:			OUT	STD_LOGIC_VECTOR(2 downto 0);
-		active:             		OUT	STD_LOGIC
+		active0:             		OUT STD_LOGIC;
+		active1:             		OUT STD_LOGIC
 	);
 	END COMPONENT;
 	
@@ -65,33 +79,7 @@ ARCHITECTURE BNB OF BNB IS
 		);
 	END COMPONENT;
 	
-	COMPONENT timer_1st PORT (
-		seconds    :    IN  std_logic_vector(7 downto 0);	-- total time
-		rst        :    IN  std_logic;
-		clk24      :    IN  std_logic; 							-- 24M clock
-		s          :    OUT std_logic
-	);
-	END COMPONENT;
-	
-	COMPONENT test PORT (
-    	clock, enable, reset: 					IN STD_LOGIC;
-		key:                  					IN STD_LOGIC_VECTOR(3 downto 0);
-		timer:                					IN STD_LOGIC;
-		timer_x, timer_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
-
-		Q_tile_X, Q_tile_Y:	  					IN STD_LOGIC_VECTOR(4 downto 0);
-		Q_tile_type:								OUT STD_LOGIC_VECTOR(0 to 1);
-		 
-		out_player_X0, out_player_Y0:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
-		out_player_X1, out_player_Y1:			OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
-		out_free0, out_free1:					OUT STD_LOGIC;
 		
-		out_place_x0, out_place_y0:			OUT STD_LOGIC_VECTOR(8 downto 0); 	 -- bubble 0 position
-		out_explode_x0, out_explode_y0: 		OUT STD_LOGIC_VECTOR(8 downto 0);    -- explode center position
-		out_qs: 										OUT std_logic_vector(1 downto 0)
-	);
-	END COMPONENT;
-	
 	COMPONENT seg7 PORT (
 		code: 		IN std_logic_vector(3 downto 0);
 		seg_out : 	OUT std_logic_vector(6 downto 0)
@@ -105,20 +93,13 @@ ARCHITECTURE BNB OF BNB IS
 	);
 	END COMPONENT;
 	
-	COMPONENT bubble_rom PORT (
+	COMPONENT dizni_rom PORT (	
 		address		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-		clock			: IN STD_LOGIC  := '1';
-		q				: OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
+		clock		: IN STD_LOGIC  := '1';
+		q		: OUT STD_LOGIC_VECTOR (0 DOWNTO 0)
 	);
 	END COMPONENT;
 	
-	COMPONENT explo_rom PORT
-	(
-		address		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-		clock			: IN STD_LOGIC  := '1';
-		q				: OUT STD_LOGIC_VECTOR (2 DOWNTO 0)
-	);
-	END COMPONENT;
 
 	CONSTANT zero2:							STD_LOGIC_VECTOR(1 downto 0) := "00";
 	CONSTANT zero3:							STD_LOGIC_VECTOR(2 downto 0) := "000";
@@ -127,13 +108,14 @@ ARCHITECTURE BNB OF BNB IS
 	CONSTANT background_g: 					STD_LOGIC_VECTOR(2 downto 0) := zero3;
 	CONSTANT background_b: 					STD_LOGIC_VECTOR(2 downto 0) := zero3;
 	
-	constant player2_r    : STD_LOGIC_VECTOR(2 downto 0) := "000";
-	constant player2_g    : STD_LOGIC_VECTOR(2 downto 0) := "010";
-	constant player2_b    : STD_LOGIC_VECTOR(2 downto 0) := "000";
+	constant player0_r    : STD_LOGIC_VECTOR(2 downto 0) := "001";
+	constant player0_g    : STD_LOGIC_VECTOR(2 downto 0) := "000";
+	constant player0_b    : STD_LOGIC_VECTOR(2 downto 0) := "010";
 	
-	--CONSTANT player_r:						  STD_LOGIC_VECTOR(2 downto 0):= "101";
-	--CONSTANT player_g:						  STD_LOGIC_VECTOR(2 downto 0):= "001";
-	--CONSTANT player_b:						  STD_LOGIC_VECTOR(2 downto 0):= "010";
+	constant player1_r    : STD_LOGIC_VECTOR(2 downto 0) := "100";
+	constant player1_g    : STD_LOGIC_VECTOR(2 downto 0) := "000";
+	constant player1_b    : STD_LOGIC_VECTOR(2 downto 0) := "001";
+	
 	SIGNAL player_r:							STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL player_g:							STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL player_b:							STD_LOGIC_VECTOR(2 downto 0);
@@ -162,7 +144,8 @@ ARCHITECTURE BNB OF BNB IS
 	SIGNAL player_X0, player_Y0:			STD_LOGIC_VECTOR(8 downto 0);
 	SIGNAL player_X1, player_Y1:			STD_LOGIC_VECTOR(8 downto 0);
 	SIGNAL free0, free1:						STD_LOGIC := '1';
-	SIGNAL play_out:							STD_LOGIC;
+	SIGNAL play_out0:							STD_LOGIC;
+	SIGNAL play_out1:							STD_LOGIC;
 	
 	SIGNAL bubble_X0, bubble_Y0:		   STD_LOGIC_VECTOR(8 downto 0);
 	SIGNAL bubble_X1, bubble_Y1:		   STD_LOGIC_VECTOR(8 downto 0);
@@ -172,14 +155,17 @@ ARCHITECTURE BNB OF BNB IS
 	SIGNAL timer_s:							STD_LOGIC;
 	
 	SIGNAL map_read_X, map_read_Y:		STD_LOGIC_VECTOR(4 downto 0);
-	SIGNAL map_data: 							STD_LOGIC_VECTOR(2 downto 0);
-	SIGNAL map_state:							STD_LOGIC_VECTOR(1 downto 0);
+	SIGNAL map_state:							STD_LOGIC_VECTOR(2 downto 0);
 	SIGNAL inner_state:						STD_LOGIC_VECTOR(1 downto 0);
 	SIGNAL logic_enable:						STD_LOGIC;
 	
 	SIGNAL address_32:						STD_LOGIC_VECTOR(9 downto 0);
 	SIGNAL q_dao:								STD_LOGIC_vector(0 downto 0);
+	SIGNAL q_dizni:								STD_LOGIC_vector(0 downto 0);
 BEGIN
+	timer_s<=timer_in;
+	timer_x<="00010";
+	timer_y<="00010";
 	PROCESS -- 100M to 50M
 	BEGIN
 		WAIT UNTIL clock_100'Event AND clock_100 = '1';	
@@ -192,6 +178,7 @@ BEGIN
 		clock_25 <= NOT clock_25;
 	END PROCESS;
 	
+
 	sync: Video_Sync PORT MAP (
 		clock => clock_25,
 		horiz_sync => t_hsync,
@@ -213,9 +200,9 @@ BEGIN
 	dmap: draw_map PORT MAP (
 		world_X  => world_X,
 		world_Y  => world_Y,
-		tile_num => map_data,
+		tile_num => map_state,
 		red 		=> map_r,
-		green 	=> map_g,
+		green 	=> 	map_g,
 		blue 		=> map_b
 	);
 	
@@ -232,35 +219,12 @@ BEGIN
 		red 		=> player_r,
 		green 	=> player_g,
 		blue 		=> player_b,
-		active 	=> play_out
+		active0 	=> play_out0,
+		active1  => play_out1
 	);
-	
-	maprom: map_rom PORT MAP (
-		clock  => clock_25,
-		tile_X => map_read_X,
-		tile_Y => map_read_Y,
-		data   => map_data
-	);
-	
---	game_logic: game PORT MAP (
---		clock => clock_25,
---		enable => logic_enable,
---		map_data => map_data,
---		map_read_X => coll_read_X,
---		map_read_Y => coll_read_Y,
---		out_player_X => player_X,
---		out_player_Y => player_Y,
---		pad_state => pad_state
---	);
-
-	t_timer: timer_1st PORT MAP (
-		seconds 	=> TOTAL_TIME,
-		rst 		=> reset,
-		clk24 	=> clock_24,
-		s 			=> timer_s
-	);
-	
+		
 	key_reset <= not reset;
+	
 	keyboard_scancode: keyboard PORT MAP (
 		datain 	=> key_data_in,
 		clkin  	=> key_clock,
@@ -285,9 +249,9 @@ BEGIN
 		reset  => reset,
 		key 	 => key,
 		
-		timer   => timer_s,
-		timer_x => timer_x,
-		timer_y => timer_y,
+		timer0   => timer_s,
+		timer0_x => timer_x,
+		timer0_y => timer_y,
 		
 		Q_tile_X => map_read_X,
 		Q_tile_Y => map_read_Y,
@@ -298,14 +262,8 @@ BEGIN
 		out_player_X1 => player_X1,
 		out_player_Y1 => player_Y1,
 		out_free0 => free0,
-		out_free1 => free1,
+		out_free1 => free1
 		
-		out_place_x0 => bubble_X0,
-		out_place_y0 => bubble_Y0,
-		
-		out_explode_x0 => explode_X,
-		out_explode_y0 => explode_Y,
-		out_qs => inner_state
 	);
 	
 	address_32 <= V_count(4 downto 0) & H_count(4 downto 0);
@@ -315,33 +273,20 @@ BEGIN
 		q => q_dao
 	);
 	
-	bubble: bubble_rom PORT MAP (
+	dizni: dizni_rom PORT MAP (
 		address => address_32,
 		clock => clock_25,
-		q => bub_data
+		q => q_dizni
 	);
 	
-	explo: explo_rom PORT MAP (
-		address => address_32,
-		clock  => clock_25,
-		q => explo_data
-	);
-	
-	bub_r <= bub_data(2);
-	bub_g <= bub_data(1);
-	bub_b <= bub_data(0);
-	
-	exp_r <= explo_data(2);
-	exp_g <= explo_data(1);
-	exp_b <= explo_data(0);
-	
+--	bub_r <= bub_data(2);
+--	bub_g <= bub_data(1);
+--	bub_b <= bub_data(0);
+
 	logic_enable <= not t_vsync;
 	
 	map_read_X <= tile_X WHEN video_on = '1';-- ELSE coll_read_X;
 	map_read_Y <= tile_Y WHEN video_on = '1';-- ELSE coll_read_Y;
-	
-	out_player_x <= player_X0;
-	out_player_y <= player_Y0;
 	
 	PROCESS(clock_25)
 	BEGIN
@@ -351,39 +296,36 @@ BEGIN
 				g <= background_g;
 				b <= background_b;
 			ELSE
-				IF play_out = '1' THEN
+				IF play_out0 = '1' THEN
 					IF q_dao = "1" THEN
-						r <= player_r;
-						g <= player_g;
-						b <= player_b;
+						r <= player0_r;
+						g <= player0_g;
+						b <= player0_b;
 					ELSE
 						r <= "111";			  	
-						g <= "011";
-						b <= "001";
+						g <= "111";
+						b <= "111";
+					END IF;
+				ELSIF play_out1 = '1' THEN
+					IF q_dizni = "1" THEN
+						r <= player1_r;
+						g <= player1_g;
+						b <= player1_b;
+					ELSE
+						r <= "111";			  	
+						g <= "111";
+						b <= "111";
 					END IF;
 				ELSE
-					CASE map_state IS 
-						WHEN "01" =>
-							r <= map_r & zero2;
-							g <= map_g & zero2;
-							b <= map_b & zero2;
-						WHEN "10" =>
-							r <= bub_r & zero2;
-							g <= bub_g & zero2;
-							b <= bub_b & zero2;
-						WHEN "11" =>
-							r <= exp_r & zero2;
-							g <= exp_g & zero2;
-							b <= exp_b & zero2;
-						WHEN "00" => 
-							r <= map_r & "00";
-							g <= map_g & "00";
-							b <= map_b & "00";
-						WHEN others => 
-							r <= background_r;
-							g <= background_g;
-							b <= background_b;
-					END CASE;
+--					IF map_state = "010" THEN
+--						r <= bub_r & zero2;
+--						g <= bub_g & zero2;
+--						b <= bub_b & zero2;
+--					ELSE
+						r <= map_r & "00";
+						g <= map_g & "00";
+						b <= map_b & "00";
+--					END IF;	
 				END IF;
 			END IF;
 		END IF;
