@@ -5,18 +5,15 @@ USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY test IS PORT (
 	clock, enable, reset:		IN STD_LOGIC;
-	key:						IN STD_LOGIC_VECTOR(3 downto 0);
-
---	timer0:				 IN STD_LOGIC;
---	timer0_x, timer0_y:	 IN STD_LOGIC_VECTOR(4 downto 0);
-  
+	key:								IN STD_LOGIC_VECTOR(3 downto 0);
+	
 	Q_tile_X, Q_tile_Y:			IN STD_LOGIC_VECTOR(4 downto 0);
 	Q_tile_type:				OUT STD_LOGIC_VECTOR(0 to 2);
   
+	explode:								OUT STD_LOGIC;
 	out_player_X0, out_player_Y0:	OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
 	out_player_X1, out_player_Y1:	OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
-	out_free0, out_free1:			OUT STD_LOGIC
-  
+	out_free0, out_free1:			OUT STD_LOGIC	
 );
 END;
 
@@ -84,9 +81,7 @@ END COMPONENT;
 	SIGNAL explode_x0, explode_y0:  STD_LOGIC_VECTOR(4 downto 0);
 
 	SIGNAL place, place_0, place_1: STD_LOGIC;	-- bubble place signal
-	SIGNAL explode_valid:			STD_LOGIC;
-	SIGNAL explode_tmp:	 				STD_LOGIC;
-	SIGNAL explode:						STD_LOGIC;
+	SIGNAL sexplode:						STD_LOGIC;
  
 BEGIN
 	--EXPLOSION
@@ -126,18 +121,6 @@ BEGIN
 -- end if;
 -- end process;
 
-	bub_timer: timer_1st PORT MAP (
-		place => place,
-		valid_in => place,
-		rst => reset,
-		clk24 => clock,
-		place_X => place_x0,
-		place_Y	=> place_y0,
-		out_place_X	=> explode_x0,
-		out_place_Y	=> explode_y0,
-		s => explode
-	);
-	
 --	PROCESS(explode_tmp, explode_valid)
 --	BEGIN
 --		IF explode_valid = '1' THEN
@@ -148,7 +131,7 @@ BEGIN
 --	END PROCESS;
 	
 	PROCESS (clock)
-		VARIABLE s: integer :=0;
+		VARIABLE scnt: integer :=0;
 	BEGIN
 	IF clock'Event AND clock = '1' THEN
 		IF enable = '0' THEN
@@ -234,10 +217,11 @@ BEGIN
 					state <= UPDATE;
 				WHEN UPDATE =>
 					IF reset = '0' THEN
-						player_X0 <= "00011";
-						player_Y0 <= "00011";
+						player_X0 <= "10011";
+						player_Y0 <= "01110";
 						player_X1 <= "00000";
 						player_Y1 <= "00000";
+						place <= '0';
 					ELSE
 						if player_dX1="00000" and player_dY1="00000" then
 						   q2_x <= player_X0 + player_dX0;
@@ -249,9 +233,9 @@ BEGIN
 					END IF;
 					state <= COLL;
 				WHEN COLL =>
-					s:=s+1;
-					if s=10000 then
-						s:=0;
+					scnt := scnt + 1;
+					if scnt = 5000 then
+						scnt := 0;
 						if q2_s="000" then
 							player_X0 <= player_X0 + player_dX0;
 							player_Y0 <= player_Y0 + player_dY0;
@@ -264,28 +248,42 @@ BEGIN
 					IF enable = '0' THEN
 						state <= IDLE;
 					END IF;
+					place <= '0';
 			END CASE;
 		END IF;
 	END IF;
 	END PROCESS;
 
- map_ram: ram PORT MAP(
-  clock => clock,
-  --query
-  Q_X => q_x, 
-  Q_Y => q_y,
-  Q_S => q_s,
-  Q2_X => q2_x, 
-  Q2_Y => q2_y,
-  Q2_S => q2_s,
-  rst => reset,
-  place_X => place_x0,
-  place_Y => place_y0,
-  place   => place,
-  explode_X => explode_x0,
-  explode_Y => explode_y0,
-  explode   => explode
- );
+		bub_timer: timer_1st PORT MAP (
+		place => place,
+		valid_in => place,
+		rst => reset,
+		clk24 => clock,
+		place_X => place_x0,
+		place_Y	=> place_y0,
+		out_place_X	=> explode_x0,
+		out_place_Y	=> explode_y0,
+		s => sexplode
+	);
+	explode <= sexplode;
+	
+	map_ram: ram PORT MAP(
+	  clock => clock,
+	  --query
+	  Q_X => q_x, 
+	  Q_Y => q_y,
+	  Q_S => q_s,
+	  Q2_X => q2_x, 
+	  Q2_Y => q2_y,
+	  Q2_S => q2_s,
+	  rst => reset,
+	  place_X => place_x0,
+	  place_Y => place_y0,
+	  place   => place,
+	  explode_X => explode_x0,
+	  explode_Y => explode_y0,
+	  explode   => sexplode
+	);
 
  out_player_X0 <= player_X0 & zero4;
  out_player_Y0 <= player_Y0 & zero4;

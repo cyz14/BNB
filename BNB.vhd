@@ -11,6 +11,7 @@ ENTITY BNB IS PORT (
 	hs, vs:				OUT 	STD_LOGIC;
 	move:					OUT	STD_LOGIC_VECTOR(6 downto 0);
 	key_data_in:		IN 	STD_LOGIC;
+	explode_out:		OUT   STD_LOGIC;
 	key_clock:			IN		STD_LOGIC --;timer_in:  in std_logic
 );
 END BNB;
@@ -19,9 +20,7 @@ ARCHITECTURE BNB OF BNB IS
 	COMPONENT test PORT (
     	clock, enable, reset: 					IN STD_LOGIC;
 		key:                  					IN STD_LOGIC_VECTOR(3 downto 0);
---		timer0:                					IN STD_LOGIC;
---		timer0_x, timer0_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
-
+		explode:										OUT STD_LOGIC;
 		Q_tile_X, Q_tile_Y:	  					IN STD_LOGIC_VECTOR(4 downto 0);
 		Q_tile_type:								OUT STD_LOGIC_VECTOR(0 to 2);
 		 
@@ -247,11 +246,7 @@ BEGIN
 		enable => logic_enable,
 		reset  => reset,
 		key 	 => key,
-		
---		timer0   => timer_s,
---		timer0_x => timer_x,
---		timer0_y => timer_y,
-		
+		explode => explode_out,
 		Q_tile_X => map_read_X,
 		Q_tile_Y => map_read_Y,
 		Q_tile_type => map_state,
