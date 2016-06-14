@@ -41,6 +41,8 @@ BEGIN
 		VARIABLE i2: integer;
 		VARIABLE i1: integer;
 		VARIABLE s: integer:=0;
+		
+		TYPE ESTATE IS (EWAIT, EUP, ERIGHT, EDOWN, ELEFT);
     BEGIN
 		place_num := conv_integer(place_Y & place_X);
 		

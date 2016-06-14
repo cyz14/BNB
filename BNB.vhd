@@ -11,8 +11,7 @@ ENTITY BNB IS PORT (
 	hs, vs:				OUT 	STD_LOGIC;
 	move:					OUT	STD_LOGIC_VECTOR(6 downto 0);
 	key_data_in:		IN 	STD_LOGIC;
-	key_clock:			IN		STD_LOGIC;
-	timer_in:  in std_logic
+	key_clock:			IN		STD_LOGIC --;timer_in:  in std_logic
 );
 END BNB;
 
@@ -20,8 +19,8 @@ ARCHITECTURE BNB OF BNB IS
 	COMPONENT test PORT (
     	clock, enable, reset: 					IN STD_LOGIC;
 		key:                  					IN STD_LOGIC_VECTOR(3 downto 0);
-		timer0:                					IN STD_LOGIC;
-		timer0_x, timer0_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
+--		timer0:                					IN STD_LOGIC;
+--		timer0_x, timer0_y:     					IN STD_LOGIC_VECTOR(4 downto 0);
 
 		Q_tile_X, Q_tile_Y:	  					IN STD_LOGIC_VECTOR(4 downto 0);
 		Q_tile_type:								OUT STD_LOGIC_VECTOR(0 to 2);
@@ -163,9 +162,9 @@ ARCHITECTURE BNB OF BNB IS
 	SIGNAL q_dao:								STD_LOGIC_vector(0 downto 0);
 	SIGNAL q_dizni:								STD_LOGIC_vector(0 downto 0);
 BEGIN
-	timer_s<=timer_in;
-	timer_x<="00010";
-	timer_y<="00010";
+--	timer_s<=timer_in;
+--	timer_x<="00010";
+--	timer_y<="00010";
 	PROCESS -- 100M to 50M
 	BEGIN
 		WAIT UNTIL clock_100'Event AND clock_100 = '1';	
@@ -249,9 +248,9 @@ BEGIN
 		reset  => reset,
 		key 	 => key,
 		
-		timer0   => timer_s,
-		timer0_x => timer_x,
-		timer0_y => timer_y,
+--		timer0   => timer_s,
+--		timer0_x => timer_x,
+--		timer0_y => timer_y,
 		
 		Q_tile_X => map_read_X,
 		Q_tile_Y => map_read_Y,

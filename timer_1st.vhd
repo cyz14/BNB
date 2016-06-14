@@ -4,16 +4,15 @@ USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY timer_1st IS PORT (
-		place		  :	 IN  std_logic;
-		valid_in	  :    IN  std_logic;
-		rst        :    IN  std_logic;
-		clk24      :    IN  std_logic; 							-- 24M clock
-		place_X	  :	 IN  std_logic_vector(4 downto 0);
-		place_Y	  :	 IN  std_logic_vector(4 downto 0);
-		out_place_X:    OUT std_logic_vector(4 downto 0);
-		out_place_Y:    OUT std_logic_vector(4 downto 0);
-		valid_out  :	 OUT std_logic;
-		s          :    OUT std_logic
+		place		:		IN  std_logic;
+		valid_in	:		IN  std_logic;
+		rst			:		IN  std_logic;
+		clk24  		:		IN  std_logic; 							-- 24M clock
+		place_X		:		IN  std_logic_vector(4 downto 0);
+		place_Y		:		IN  std_logic_vector(4 downto 0);
+		out_place_X	:		OUT std_logic_vector(4 downto 0);
+		out_place_Y	:	 	OUT std_logic_vector(4 downto 0);
+		s          	:		OUT std_logic
 	);
 END timer_1st;
 
@@ -39,13 +38,11 @@ BEGIN
 						cnt := 0;
 						s_tmp <= '0';
 						state <= STIME;
-						valid_out <= '1';
 					end if;
 				when STIME =>
 					cnt := cnt + 1;
 					if cnt = 23000000 then
 						--state <= SOFF;
-						valid_out <= '0';
 						s_tmp <= '1';
 					end if;
 			end case;
