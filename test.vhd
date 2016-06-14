@@ -40,7 +40,6 @@ COMPONENT ram PORT(
 END COMPONENT;
 
 COMPONENT timer_1st PORT (
-	place			:	IN  std_logic;
 	valid_in		:	IN  std_logic;
 	rst				:	IN  std_logic;
 	clk24			:	IN  std_logic; 							-- 24M clock
@@ -52,7 +51,7 @@ COMPONENT timer_1st PORT (
 );
 END COMPONENT;
 
-	TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, UPDATE, DONE, COLL);
+	TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, COLL_START, COLL_DET, UPDATE, DONE );
 	SIGNAL state: STATE_TYPE;
 
 	SIGNAL player_X0, player_Y0:	STD_LOGIC_VECTOR(4 downto 0);
@@ -83,7 +82,7 @@ END COMPONENT;
  
 BEGIN
 
-	PROCESS (clock)
+	PROCESS (clock, reset, enable)
 		VARIABLE scnt: integer :=0;
 	BEGIN
 	IF clock'Event AND clock = '1' THEN
@@ -153,12 +152,12 @@ BEGIN
 								player_dX1 <= delta0;
 							END IF;
 						when "0101" =>
-							place_x0<= player_X0;
-							place_y0<= player_Y0;
+							place_x0 <= player_X0;
+							place_y0 <= player_Y0;
 							place<='1';
 						when "1010" =>
-							place_x0<= player_X1;
-							place_y0<= player_Y1; 
+							place_x0 <= player_X1;
+							place_y0 <= player_Y1; 
 							place<='1';
 						WHEN others =>
 							player_dX0 <= delta0;
@@ -167,36 +166,39 @@ BEGIN
 							player_dY1 <= delta0;
 							place <= '0';
 					END CASE;
+					state <= COLL_START;
+				WHEN COLL_START =>
+					if player_dX1="00000" and player_dY1="00000" then
+						q2_x <= player_X0 + player_dX0;
+						q2_y <= player_Y0 + player_dY0;
+					elsif player_dX0="00000" and player_dY0="00000" then
+						q2_x <= player_X1 + player_dX1;
+						q2_y <= player_Y1 + player_dY1;
+					end if;
+					state <= COLL_DET;
+				WHEN COLL_DET =>
+					
 					state <= UPDATE;
 				WHEN UPDATE =>
 					IF reset = '0' THEN
-						player_X0 <= "10011";
-						player_Y0 <= "01110";
-						player_X1 <= "00000";
-						player_Y1 <= "00000";
-						place <= '0';
+							player_X0 <= "10011";
+							player_Y0 <= "01110";
+							player_X1 <= "00000";
+							player_Y1 <= "00000";
+							place <= '0';
 					ELSE
-						if player_dX1="00000" and player_dY1="00000" then
-						   q2_x <= player_X0 + player_dX0;
-						   q2_y <= player_Y0 + player_dY0;
-						elsif player_dX0="00000" and player_dY0="00000" then
-						   q2_x <= player_X1 + player_dX1;
-						   q2_y <= player_Y1 + player_dY1;
+						scnt := scnt + 1;
+						if scnt = 5000 then
+							scnt := 0;
+							if q2_s="000" then
+								player_X0 <= player_X0 + player_dX0;
+								player_Y0 <= player_Y0 + player_dY0;
+								player_X1 <= player_X1 + player_dX1;
+								player_Y1 <= player_Y1 + player_dY1;
+							end if;
+							state<= DONE;
 						end if;
 					END IF;
-					state <= COLL;
-				WHEN COLL =>
-					scnt := scnt + 1;
-					if scnt = 5000 then
-						scnt := 0;
-						if q2_s="000" then
-							player_X0 <= player_X0 + player_dX0;
-							player_Y0 <= player_Y0 + player_dY0;
-							player_X1 <= player_X1 + player_dX1;
-							player_Y1 <= player_Y1 + player_dY1;
-						end if;
-						state<= DONE;
-					end if;
 				WHEN DONE =>
 					IF enable = '0' THEN
 						state <= IDLE;
@@ -207,8 +209,7 @@ BEGIN
 	END IF;
 	END PROCESS;
 
-		bub_timer: timer_1st PORT MAP (
-		place => place,
+	bub_timer: timer_1st PORT MAP (
 		valid_in => place,
 		rst => reset,
 		clk24 => clock,
@@ -222,7 +223,7 @@ BEGIN
 	
 --	PROCESS (sexplode)
 --	BEGIN
---	
+--	m
 --	END PROCESS;
 	
 	map_ram: ram PORT MAP(
