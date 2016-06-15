@@ -9,14 +9,14 @@ port (
 	fclk, rst : in std_logic ;  -- filter clock
 --	fok : out std_logic ;  -- data output enable signal
 	scancode : out std_logic_vector(7 downto 0) -- scan code signal output
-	) ;
+	);
 end Keyboard ;
 
 architecture rtl of Keyboard is
 type state_type is (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
 signal data, clk, clk1, clk2, odd: std_logic ; -- 毛刺处理内部信号, odd为奇偶校验
 signal code : std_logic_vector(7 downto 0) ; 
-signal fok: std_logic_vector(0 to 1);
+signal fok: std_logic_vector(0 to 2);
 signal state : state_type ;
 begin
     -- 去除尖峰
@@ -26,18 +26,18 @@ begin
 	
 	data <= datain when rising_edge(fclk) ;
 	
-    -- 偶校验
+	-- 偶校验
 	odd <= code(0) xor code(1) xor code(2) xor code(3) 
 		xor code(4) xor code(5) xor code(6) xor code(7) ;
-	
-	scancode<=code when fok(0)='1';
-		
+
+	scancode <= code when fok(0)='1';
+
 	process(rst, fclk)
 	begin
 		if rst = '1' then
 			state <= delay ;
 			code <= (others => '0') ;
-			fok <= "00" ;
+			fok <= "000" ;
 		elsif rising_edge(fclk) then
 			fok(0)<='0';
 			case state is
@@ -109,16 +109,35 @@ begin
 						end if;
 					END IF;
 
-				WHEN finish =>
-					state <= delay ;
+                WHEN finish =>
+					fok(0) <= '1' ;
+					--normal
 					if fok(1)='0' then
-						fok(0) <= '1' ;
+						state<=delay;
 					end if;
-					if code="11110000" then
-						fok(1)<='1';
-					else
+					--2nd stage of key up
+					if fok(2)='1' then
+						code<="00000000";
+						fok(2)<='0';
+					end if;
+					if fok(1)='1' then
+						fok(2)<='1';
 						fok(1)<='0';
 					end if;
+					--1st stage of key up
+					if code="11110000" then
+						fok(1)<='1';
+					end if;
+				-- WHEN finish =>
+					-- state <= delay ;
+					-- if fok(1)='0' then
+						-- fok(0) <= '1' ;
+					-- end if;
+					-- if code="11110000" then
+						-- fok(1)<='1';
+					-- else
+						-- fok(1)<='0';
+					-- end if;
 				when others =>
 					state <= delay ;
 			end case ; 

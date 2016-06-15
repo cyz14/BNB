@@ -6,7 +6,7 @@ USE IEEE.STD_LOGIC_UNSIGNED.all;
 ENTITY test IS PORT (
     clock, reset:                    IN STD_LOGIC;
     enable:                          IN STD_LOGIC;
-    key:                             IN STD_LOGIC_VECTOR(3 downto 0);
+    key0, key1:                      IN STD_LOGIC_VECTOR(3 downto 0);
     Q_tile_X, Q_tile_Y:              IN STD_LOGIC_VECTOR(4 downto 0);
     Q_tile_type:                     OUT STD_LOGIC_VECTOR(0 to 2);
     explode:                         OUT STD_LOGIC;
@@ -19,15 +19,15 @@ END;
 ARCHITECTURE game OF test IS
 
 COMPONENT ram PORT(
-    clock:                          IN STD_LOGIC;
-    Q_X, Q_Y:                       IN STD_LOGIC_VECTOR(4 downto 0);
-    Q_S:                            OUT STD_LOGIC_VECTOR(2 downto 0);
-    --query2 OWN USE
-    Q2_X, Q2_Y:                     IN STD_LOGIC_VECTOR(4 downto 0);
-    Q2_S:                           OUT STD_LOGIC_VECTOR(2 downto 0);
+    clock:                          IN  STD_LOGIC;
+    rst:                            IN  STD_LOGIC;
     --read map
-    rst:                            IN STD_LOGIC;
-    --change
+    Q_X, Q_Y:                       IN  STD_LOGIC_VECTOR(4 downto 0);
+    Q_S:                            OUT STD_LOGIC_VECTOR(2 downto 0);
+    Q1_X, Q1_Y:                     IN  STD_LOGIC_VECTOR(4 downto 0);
+    Q1_S:                           OUT STD_LOGIC_VECTOR(2 downto 0);
+    Q2_X, Q2_Y:                     IN  STD_LOGIC_VECTOR(4 downto 0);
+    Q2_S:                           OUT STD_LOGIC_VECTOR(2 downto 0);
     place_X:                        IN STD_LOGIC_VECTOR(4 downto 0);
     place_Y:                        IN STD_LOGIC_VECTOR(4 downto 0);
     place:                          IN STD_LOGIC;
@@ -56,8 +56,7 @@ END COMPONENT;
     SIGNAL player_free0:            STD_LOGIC;
     SIGNAL player_X1, player_Y1:    STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL player_free1:            STD_LOGIC;
-
-    SIGNAL coll_X, coll_Y:          STD_LOGIC_VECTOR(4 downto 0);
+	 
     SIGNAL reset_game:              STD_LOGIC;
 
     SIGNAL player_dX0, player_dY0:  STD_LOGIC_VECTOR(4 downto 0);
@@ -68,8 +67,10 @@ END COMPONENT;
     CONSTANT plus1:                 STD_LOGIC_VECTOR(4 downto 0) := "00001";
     CONSTANT zero4:                 STD_LOGIC_VECTOR(3 downto 0) := "0000";
 
-    SIGNAL q2_X, q2_Y:              STD_LOGIC_VECTOR(4 downto 0);
-    SIGNAL q2_S:                    STD_LOGIC_VECTOR(2 downto 0);
+    SIGNAL q1_x, q1_y:              STD_LOGIC_VECTOR(4 downto 0);
+    SIGNAL q1_s:                    STD_LOGIC_VECTOR(2 downto 0);
+    SIGNAL q2_x, q2_y:              STD_LOGIC_VECTOR(4 downto 0);
+    SIGNAL q2_s:                    STD_LOGIC_VECTOR(2 downto 0);
 
     ---------------------------------------------------------------- 
     SIGNAL place_x0, place_y0:      STD_LOGIC_VECTOR(4 downto 0);
@@ -100,9 +101,9 @@ BEGIN
                     reset_game <= not reset;
                     state <= GEN_DELTAS;
                 WHEN GEN_DELTAS =>
-                    CASE key IS
+                    CASE key0 IS
                         WHEN "0010" => -- 0 left
-                            IF player_x0/="00000" THEN
+                            IF player_x0 /= "00000" THEN
                                 player_dX0 <= minus1;
                             ELSE
                                 player_dX0 <= delta0;
@@ -120,11 +121,21 @@ BEGIN
                                 player_dX0 <= delta0;
                             END IF;
                         WHEN "0011" => -- 0 down
-                            IF player_y0 /= "01111" THEN
+                            IF player_y0 < "01110" THEN
                                 player_dY0 <= plus1;
                             ELSE
                                 player_dY0 <= delta0;
                             END IF;
+                        when "0101" => -- 0 place bubble
+                            place_x0 <= player_X0;
+                            place_y0 <= player_Y0;
+                            place <= '1';
+                        WHEN OTHERS =>
+                            player_dX0 <= delta0;
+                            player_dY0 <= delta0;
+                    END CASE;
+                    
+                    CASE key1 IS
                         WHEN "0110" => -- 1 up
                             IF player_y1 /= "00000" THEN
                                 player_dY1 <= minus1;
@@ -132,7 +143,7 @@ BEGIN
                                 player_dY1 <= delta0;
                             END IF;
                         WHEN "0111" => -- 1 left
-                            IF player_x1/="00000" THEN
+                            IF player_x1 /= "00000" THEN
                                 player_dX1 <= minus1;
                             ELSE
                                 player_dX1 <= delta0;
@@ -149,33 +160,22 @@ BEGIN
                             ELSE
                                 player_dX1 <= delta0;
                             END IF;
-                        when "0101" =>
-                            place_x0 <= player_X0;
-                            place_y0 <= player_Y0;
-                            place<='1';
-                        when "1010" =>
+                        when "1010" => -- 1 place bubble
                             place_x0 <= player_X1;
                             place_y0 <= player_Y1; 
-                            place<='1';
+                            place <= '1';
                         WHEN others =>
-                            player_dX0 <= delta0;
-                            player_dY0 <= delta0;
                             player_dX1 <= delta0;
                             player_dY1 <= delta0;
-                            place <= '0';
                     END CASE;
                     state <= COLL_START;
                 WHEN COLL_START =>
-                    if player_dX1="00000" and player_dY1="00000" then
-                        q2_x <= player_X0 + player_dX0;
-                        q2_y <= player_Y0 + player_dY0;
-                    elsif player_dX0="00000" and player_dY0="00000" then
-                        q2_x <= player_X1 + player_dX1;
-                        q2_y <= player_Y1 + player_dY1;
-                    end if;
+						  q1_x <= player_X0 + player_dX0;
+						  q1_y <= player_Y0 + player_dY0;
+						  q2_x <= player_X1 + player_dX1;
+						  q2_y <= player_Y1 + player_dY1;
                     state <= COLL_DET;
                 WHEN COLL_DET =>
-                    
                     state <= UPDATE;
                 WHEN UPDATE =>
                     IF reset = '0' THEN
@@ -186,18 +186,24 @@ BEGIN
                             place <= '0';
                     ELSE
                         scnt := scnt + 1;
-                        if scnt = 5000 then
+                        IF scnt = 5000 THEN
                             scnt := 0;
-                            if q2_s="000" then
+                            IF q1_s = "000" THEN
                                 player_X0 <= player_X0 + player_dX0;
                                 player_Y0 <= player_Y0 + player_dY0;
+                            END IF;
+                            IF q2_s = "000" THEN
                                 player_X1 <= player_X1 + player_dX1;
                                 player_Y1 <= player_Y1 + player_dY1;
-                            end if;
-                            state<= DONE;
+                            END IF;
+                            state <= DONE;
                         end if;
                     END IF;
                 WHEN DONE =>
+					     player_dX0 <= delta0;
+						  player_dY0 <= delta0;
+						  player_dX1 <= delta0;
+						  player_dY1 <= delta0;
                     IF enable = '0' THEN
                         state <= IDLE;
                     END IF;
@@ -219,17 +225,15 @@ BEGIN
     );
     explode <= sexplode;
     
---    PROCESS (sexplode)
---    BEGIN
---    m
---    END PROCESS;
-    
     map_ram: ram PORT MAP(
       clock => clock,
       --query
       Q_X => Q_tile_X,
       Q_Y => Q_tile_Y,
       Q_S => Q_tile_type,
+      Q1_X => q1_x,
+      Q1_Y => q1_y,
+      Q1_S => q1_s,
       Q2_X => q2_x, 
       Q2_Y => q2_y,
       Q2_S => q2_s,
@@ -242,9 +246,9 @@ BEGIN
       explode   => sexplode
     );
 
- out_player_X0 <= player_X0 & zero4;
- out_player_Y0 <= player_Y0 & zero4;
- out_player_X1 <= player_X1 & zero4;
- out_player_Y1 <= player_Y1 & zero4;
+    out_player_X0 <= player_X0 & zero4;
+    out_player_Y0 <= player_Y0 & zero4;
+    out_player_X1 <= player_X1 & zero4;
+    out_player_Y1 <= player_Y1 & zero4;
 
 END game;

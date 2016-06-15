@@ -6,12 +6,13 @@ USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY ram IS PORT(
     clock:              IN  STD_LOGIC;
-    --query
+    rst:                IN  STD_LOGIC;
     Q_X, Q_Y:           IN  STD_LOGIC_VECTOR(4 downto 0);
     Q_S:                OUT STD_LOGIC_VECTOR(2 downto 0);
+    Q1_X, Q1_Y:         IN  STD_LOGIC_VECTOR(4 downto 0);
+    Q1_S:               OUT STD_LOGIC_VECTOR(2 downto 0);
     Q2_X, Q2_Y:         IN  STD_LOGIC_VECTOR(4 downto 0);
     Q2_S:               OUT STD_LOGIC_VECTOR(2 downto 0);
-    rst:                IN  STD_LOGIC;
     place_X:            IN  STD_LOGIC_VECTOR(4 downto 0);
     place_Y:            IN  STD_LOGIC_VECTOR(4 downto 0);
     place:              IN  STD_LOGIC;
@@ -27,6 +28,7 @@ ARCHITECTURE map_ram OF ram IS
     SIGNAL tile:               map_tile;
     
     SIGNAL Q_addr:             STD_LOGIC_VECTOR(9 downto 0);
+    SIGNAL Q1_addr:             STD_LOGIC_VECTOR(9 downto 0);
     SIGNAL Q2_addr:            STD_LOGIC_VECTOR(9 downto 0);
     SIGNAL place_addr:         STD_LOGIC_VECTOR(9 downto 0);
     SIGNAL explo_addr:         STD_LOGIC_VECTOR(9 downto 0);
@@ -36,20 +38,25 @@ ARCHITECTURE map_ram OF ram IS
     shared VARIABLE ram:    ram_type;
 BEGIN
     
-    PROCESS (Q_X, Q_Y, Q2_X, Q2_Y)
+    PROCESS (Q_X, Q_Y, Q1_X, Q1_Y, Q2_X, Q2_Y)
         VARIABLE i2: integer;
         VARIABLE i1: integer;
+        VARIABLE i0: integer;
     BEGIN
         Q_addr  <= Q_Y  & Q_X;
+        Q1_addr <= Q1_Y & Q1_X;
         Q2_addr <= Q2_Y & Q2_X;
+        i0 := to_integer(unsigned(Q_addr));
+        i1 := to_integer(unsigned(Q1_addr));
         i2 := to_integer(unsigned(Q2_addr));
-        i1 := to_integer(unsigned(Q_addr));
         
-        Q_S  <= ram(i1);
+        
+        Q_S  <= ram(i0);
+        Q1_S <= ram(i1);
         Q2_S <= ram(i2);
     END PROCESS;
 
-    PROCESS(clock)
+    PROCESS(clock, rst, place_X, place_Y, explode_X, explode_Y)
         VARIABLE place_num:      integer:=0;
         VARIABLE explode_num:    integer:=0;
         VARIABLE detect_num:     integer:=0;
