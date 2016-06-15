@@ -5,28 +5,27 @@ use ieee.std_logic_arith.all;
 
 entity Keyboard is
 port (
-	datain, clkin : in std_logic ; -- PS2 clk and data
-	fclk, rst : in std_logic ;  -- filter clock
---	fok : out std_logic ;  -- data output enable signal
-	scancode : out std_logic_vector(7 downto 0) -- scan code signal output
+	datain, clkin : in std_logic ;               -- PS2 clk and data
+	fclk, rst : in std_logic ;                   -- filter clock
+	scancode : out std_logic_vector(7 downto 0)  -- scan code signal output
 	);
 end Keyboard ;
 
 architecture rtl of Keyboard is
-type state_type is (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
-signal data, clk, clk1, clk2, odd: std_logic ; -- 毛刺处理内部信号, odd为奇偶校验
-signal code : std_logic_vector(7 downto 0) ; 
-signal fok: std_logic_vector(0 to 2);
-signal state : state_type ;
+	type state_type is (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
+	signal data, clk, clk1, clk2, odd: std_logic ;
+	signal code : std_logic_vector(7 downto 0) ; 
+	signal fok: std_logic_vector(0 to 2);
+	signal state : state_type ;
 begin
-    -- 去除尖峰
+    -- remove glitch
 	clk1 <= clkin when rising_edge(fclk) ;
 	clk2 <= clk1 when rising_edge(fclk) ;
 	clk <= (not clk1) and clk2 ;
 	
 	data <= datain when rising_edge(fclk) ;
 	
-	-- 偶校验
+	-- odd checksum
 	odd <= code(0) xor code(1) xor code(2) xor code(3) 
 		xor code(4) xor code(5) xor code(6) xor code(7) ;
 
@@ -128,16 +127,6 @@ begin
 					if code="11110000" then
 						fok(1)<='1';
 					end if;
-				-- WHEN finish =>
-					-- state <= delay ;
-					-- if fok(1)='0' then
-						-- fok(0) <= '1' ;
-					-- end if;
-					-- if code="11110000" then
-						-- fok(1)<='1';
-					-- else
-						-- fok(1)<='0';
-					-- end if;
 				when others =>
 					state <= delay ;
 			end case ; 
