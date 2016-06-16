@@ -4,9 +4,9 @@ USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY timer_1st IS PORT (
-		valid_in	:		IN  std_logic;
+		valid_in	   :		IN  std_logic;
 		rst			:		IN  std_logic;
-		clk24  		:		IN  std_logic; 							-- 24M clock
+		clk24  		:		IN  std_logic; -- 24M clock
 		place_X		:		IN  std_logic_vector(4 downto 0);
 		place_Y		:		IN  std_logic_vector(4 downto 0);
 		out_place_X	:		OUT std_logic_vector(4 downto 0);
@@ -45,24 +45,14 @@ BEGIN
 				when STIME =>
 					add := 1;
 					if cnt = 23000000 then
-						--state <= SOFF;
-						s_tmp <= not s_tmp; --'1';
+						s_tmp <= not s_tmp;
 						out_place_X <= tmp_x;
 						out_place_Y <= tmp_y;
 						cnt := 0;
 						if s_tmp = '0' then
 							state <= SWAIT;
 						end if;
-						--state <= SEND;
 					end if;
---				WHEN SEND =>
---					add := 1;
---					if cnt = 23000000 then
---						s_tmp <= '0';
---						state <= SWAIT;
---						tmp_x <= "00000";
---						tmp_y <= "00000";
---					end if;
 			end case;
 		end if;
 	END PROCESS;
