@@ -11,8 +11,7 @@ ENTITY BNB IS PORT (
     hs, vs:             OUT STD_LOGIC;
     move0, move1:       OUT STD_LOGIC_VECTOR(6 downto 0);
     key_data_in:        IN  STD_LOGIC;
-    explode_out:        OUT STD_LOGIC;
-    key_clock:          IN  STD_LOGIC --;timer_in:  in std_logic
+    key_clock:          IN  STD_LOGIC 
 );
 END BNB;
 
@@ -24,7 +23,6 @@ ARCHITECTURE BNB OF BNB IS
         key0, key1:                      IN STD_LOGIC_VECTOR(3 downto 0);
         Q_tile_X, Q_tile_Y:              IN STD_LOGIC_VECTOR(4 downto 0);
         Q_tile_type:                     OUT STD_LOGIC_VECTOR(0 to 2);
-        explode:                         OUT STD_LOGIC;
         out_player_X0, out_player_Y0:    OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
         out_player_X1, out_player_Y1:    OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
         out_free0, out_free1:            OUT STD_LOGIC
@@ -66,7 +64,7 @@ ARCHITECTURE BNB OF BNB IS
     END COMPONENT;
     
     COMPONENT keyboard PORT (
-        datain, clkin:          IN  std_logic ;      -- PS2 clk and data
+        datain, clkin:          IN  std_logic ;  -- PS2 clk and data
         fclk, rst:              IN  std_logic ;  -- filter clock
         scancode:               OUT std_logic_vector(7 downto 0) -- scan code signal output
     ) ;
@@ -232,7 +230,6 @@ BEGIN
         enable => logic_enable,
         key0 => key0,
         key1 => key1,
-        explode => explode_out,
         Q_tile_X => map_read_X,
         Q_tile_Y => map_read_Y,
         Q_tile_type => map_state,
@@ -255,9 +252,7 @@ BEGIN
         clock => clock_25,
         q => q_dizni
     );
---    bub_r <= bub_data(2);
---    bub_g <= bub_data(1);
---    bub_b <= bub_data(0);
+
     logic_enable <= not t_vsync;
     map_read_X <= tile_X WHEN video_on = '1';
     map_read_Y <= tile_Y WHEN video_on = '1';
@@ -291,15 +286,9 @@ BEGIN
                         b <= "111";
                     END IF;
                 ELSE
---                    IF map_state = "010" THEN
---                        r <= bub_r & zero2;
---                        g <= bub_g & zero2;
---                        b <= bub_b & zero2;
---                    ELSE
-                        r <= map_r & "00";
-                        g <= map_g & "00";
-                        b <= map_b & "00";
---                    END IF;
+						  r <= map_r & "00";
+						  g <= map_g & "00";
+						  b <= map_b & "00";
                 END IF;
             END IF;
         END IF;

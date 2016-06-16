@@ -9,7 +9,6 @@ ENTITY test IS PORT (
     key0, key1:                      IN STD_LOGIC_VECTOR(3 downto 0);
     Q_tile_X, Q_tile_Y:              IN STD_LOGIC_VECTOR(4 downto 0);
     Q_tile_type:                     OUT STD_LOGIC_VECTOR(0 to 2);
-    explode:                         OUT STD_LOGIC;
     out_player_X0, out_player_Y0:    OUT STD_LOGIC_VECTOR(8 downto 0); -- player0 position
     out_player_X1, out_player_Y1:    OUT STD_LOGIC_VECTOR(8 downto 0); -- player1 position
     out_free0, out_free1:            OUT STD_LOGIC
@@ -59,11 +58,11 @@ END COMPONENT;
     TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, COLL_START, COLL_DET, UPDATE, DONE );
     SIGNAL state: STATE_TYPE;
 
-    SIGNAL player_X0:    STD_LOGIC_VECTOR(4 downto 0) := "00000";
-	 SIGNAL player_Y0:    STD_LOGIC_VECTOR(4 downto 0) := "00000";
+    SIGNAL player_X0:               STD_LOGIC_VECTOR(4 downto 0) := "00000";
+	 SIGNAL player_Y0:               STD_LOGIC_VECTOR(4 downto 0) := "00000";
     SIGNAL player_free0:            STD_LOGIC;
-    SIGNAL player_X1:    STD_LOGIC_VECTOR(4 downto 0) := "10011";
-	 SIGNAL player_Y1:    STD_LOGIC_VECTOR(4 downto 0) := "01110";
+    SIGNAL player_X1:               STD_LOGIC_VECTOR(4 downto 0) := "10011";
+	 SIGNAL player_Y1:               STD_LOGIC_VECTOR(4 downto 0) := "01110";
     SIGNAL player_free1:            STD_LOGIC;
 	 
     SIGNAL player_dX0, player_dY0:  STD_LOGIC_VECTOR(4 downto 0);
