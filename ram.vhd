@@ -246,7 +246,4 @@ BEGIN
             END IF;
         END IF;
     END PROCESS;
-
-    generate_detect_num: PROCESS(clock, det_valid, explo_state0)
-    
-    END map_ram;
+END map_ram;
