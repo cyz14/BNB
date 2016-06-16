@@ -120,11 +120,11 @@ BEGIN
 								explo_state0 <= ECUR_END;
 						  WHEN ECUR_END =>
 								IF tile0 = "010" THEN
+									 ram(detect_num0) := "011";
+								ELSIF tile0 = "011" THEN
 									 ram(detect_num0) := "000";
-									 explo_state0 <= EUP_START;
-								ELSE
-									 explo_state0 <= EWAIT;
 								END IF;
+								explo_state0 <= EUP_START;
 						  WHEN EUP_START =>
 								IF explode_num0 >= wid THEN
 									 detect_num0 := explode_num0 - wid;

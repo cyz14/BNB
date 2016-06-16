@@ -30,7 +30,6 @@ BEGIN
 		IF rst = '0' THEN
 			cnt := 0;
 			s_tmp <= '0';
-			is_working <= '0';
 			state <= SWAIT;
 		elsif rising_edge(clk24) then
 			cnt := cnt + add;
@@ -42,7 +41,6 @@ BEGIN
 						s_tmp <= '0';
 						tmp_x <= place_X;
 						tmp_y <= place_Y;
-						is_working <= '1';
 						state <= STIME;
 					end if;
 				when STIME =>
@@ -53,12 +51,21 @@ BEGIN
 						out_place_Y <= tmp_y;
 						cnt := 0;
 						if s_tmp = '0' then
-						   is_working <= '0';
 							state <= SWAIT;
 						end if;
 					end if;
 			end case;
 		end if;
+	END PROCESS;
+	
+	PROCESS(state)
+	BEGIN
+		CASE state IS
+			when SWAIT =>
+			    is_working <= '0';
+		   when STIME =>
+			    is_working <= '1';
+	   END CASE;
 	END PROCESS;
 	
 END timer_1st;

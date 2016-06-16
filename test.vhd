@@ -141,11 +141,13 @@ BEGIN
                                 player_dY0 <= zero5;
                             END IF;
                         when "0101" => -- 0 place bubble
-								    IF is_working0 = '0' THEN
-									     place_x0 <= player_X0;
-                                place_y0 <= player_Y0;
-                                place_0 <= '1';
-									 END IF;
+								    place_x0 <= player_X0;
+                            place_y0 <= player_Y0;
+                            IF is_working0 = '0' THEN
+									     place_0 <= '1';
+									 ELSE 
+									     place_0 <= '0';
+								    END IF;
 							   when others =>
 								    null;
                     END CASE;
@@ -176,11 +178,13 @@ BEGIN
                                 player_dX1 <= zero5;
                             END IF;
                         when "1010" => -- 1 place bubble
-								    IF is_working1 = '0' THEN
-                                place_x1 <= player_X1;
-                                place_y1 <= player_Y1; 
-                                place_1 <= '1';
-								    END IF;
+									 place_x1 <= player_X1;
+									 place_y1 <= player_Y1; 
+									 IF is_working1 = '0' THEN
+									     place_1 <= '1';
+								    ELSE 
+									     place_1 <= '0';
+									 END IF;
 							   when others =>
 								    null;
                     END CASE;
