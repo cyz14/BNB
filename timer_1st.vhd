@@ -11,6 +11,7 @@ ENTITY timer_1st IS PORT (
 		place_Y		:		IN  std_logic_vector(4 downto 0);
 		out_place_X	:		OUT std_logic_vector(4 downto 0);
 		out_place_Y	:	 	OUT std_logic_vector(4 downto 0);
+		is_working  :     OUT std_logic;
 		s          	:		OUT std_logic
 	);
 END timer_1st;
@@ -29,6 +30,7 @@ BEGIN
 		IF rst = '0' THEN
 			cnt := 0;
 			s_tmp <= '0';
+			is_working <= '0';
 			state <= SWAIT;
 		elsif rising_edge(clk24) then
 			cnt := cnt + add;
@@ -40,6 +42,7 @@ BEGIN
 						s_tmp <= '0';
 						tmp_x <= place_X;
 						tmp_y <= place_Y;
+						is_working <= '1';
 						state <= STIME;
 					end if;
 				when STIME =>
@@ -50,6 +53,7 @@ BEGIN
 						out_place_Y <= tmp_y;
 						cnt := 0;
 						if s_tmp = '0' then
+						   is_working <= '0';
 							state <= SWAIT;
 						end if;
 					end if;

@@ -103,7 +103,6 @@ ARCHITECTURE BNB OF BNB IS
     
     CONSTANT zero2:         STD_LOGIC_VECTOR(1 downto 0) := "00";
     CONSTANT zero3:         STD_LOGIC_VECTOR(2 downto 0) := "000";
-    CONSTANT TOTAL_TIME:    STD_LOGIC_VECTOR(7 downto 0) := CONV_STD_LOGIC_VECTOR(120, 8);
     CONSTANT background_r:  STD_LOGIC_VECTOR(2 downto 0) := zero3;
     CONSTANT background_g:  STD_LOGIC_VECTOR(2 downto 0) := zero3;
     CONSTANT background_b:  STD_LOGIC_VECTOR(2 downto 0) := zero3;

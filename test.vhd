@@ -51,6 +51,7 @@ COMPONENT timer_1st PORT (
     place_Y:            IN  std_logic_vector(4 downto 0);
     out_place_X:        OUT std_logic_vector(4 downto 0);
     out_place_Y:        OUT std_logic_vector(4 downto 0);
+	 is_working:         OUT std_logic;
     s:                  OUT std_logic
 );
 END COMPONENT;
@@ -68,6 +69,9 @@ END COMPONENT;
     SIGNAL player_dX0, player_dY0:  STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL player_dX1, player_dY1:  STD_LOGIC_VECTOR(4 downto 0);
 
+	 CONSTANT R_BOARD:               STD_LOGIC_VECTOR(4 downto 0) := CONV_STD_LOGIC_VECTOR(19, 5);
+	 CONSTANT D_BOARD:					STD_LOGIC_VECTOR(4 downto 0) := CONV_STD_LOGIC_VECTOR(14, 5);
+	 
     CONSTANT minus1:                STD_LOGIC_VECTOR(4 downto 0) := "11111";
     CONSTANT plus1:                 STD_LOGIC_VECTOR(4 downto 0) := "00001";
     CONSTANT zero4:                 STD_LOGIC_VECTOR(3 downto 0) := "0000";
@@ -83,6 +87,8 @@ END COMPONENT;
     SIGNAL place_x0, place_y0:      STD_LOGIC_VECTOR(4 downto 0);
 	 SIGNAL place_x1, place_y1:      STD_LOGIC_VECTOR(4 downto 0);
 	 SIGNAL place_0, place_1:        STD_LOGIC;    -- bubble place signal
+	 SIGNAL is_working0:             STD_LOGIC;
+	 SIGNAL is_working1:             STD_LOGIC;
 	 
     SIGNAL explode_x0, explode_y0:  STD_LOGIC_VECTOR(4 downto 0);
 	 SIGNAL explode_x1, explode_y1:  STD_LOGIC_VECTOR(4 downto 0);
@@ -123,19 +129,19 @@ BEGIN
                                 player_dY0 <= zero5;
                             END IF;
                         WHEN "0100" => -- 0 right
-                            IF player_x0 /= "10011" THEN
+                            IF player_x0 /= R_BOARD THEN
                                 player_dX0 <= plus1;
                             ELSE
                                 player_dX0 <= zero5;
                             END IF;
                         WHEN "0011" => -- 0 down
-                            IF player_y0 < "01110" THEN
+                            IF player_y0 < D_BOARD THEN
                                 player_dY0 <= plus1;
                             ELSE
                                 player_dY0 <= zero5;
                             END IF;
                         when "0101" => -- 0 place bubble
-								    IF place_0 = '0' THEN
+								    IF is_working0 = '0' THEN
 									     place_x0 <= player_X0;
                                 place_y0 <= player_Y0;
                                 place_0 <= '1';
@@ -158,19 +164,19 @@ BEGIN
                                 player_dX1 <= zero5;
                             END IF;
                         WHEN "1000" => -- 1 down
-                            IF player_y1 /= "01110" THEN
+                            IF player_y1 /= D_BOARD THEN
                                 player_dY1 <= plus1;
                             ELSE
                                 player_dY1 <= zero5;
                             END IF;
                         WHEN "1001" => -- 1 right
-                            IF player_x1 /= "10010" THEN
+                            IF player_x1 /= R_BOARD THEN
                                 player_dX1 <= plus1;
                             ELSE
                                 player_dX1 <= zero5;
                             END IF;
                         when "1010" => -- 1 place bubble
-								    IF place_1 = '0' THEN
+								    IF is_working1 = '0' THEN
                                 place_x1 <= player_X1;
                                 place_y1 <= player_Y1; 
                                 place_1 <= '1';
@@ -231,6 +237,7 @@ BEGIN
         place_Y => place_y0,
         out_place_X => explode_x0,
         out_place_Y => explode_y0,
+		  is_working => is_working0,
         s => sexplode0
     );
     
@@ -242,6 +249,7 @@ BEGIN
         place_Y => place_y1,
         out_place_X => explode_x1,
         out_place_Y => explode_y1,
+		  is_working => is_working1,
         s => sexplode1
     );
 	 
