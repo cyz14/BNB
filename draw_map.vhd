@@ -4,16 +4,16 @@ USE IEEE.NUMERIC_STD.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY draw_map IS PORT (
-    world_X, world_Y:			IN STD_LOGIC_VECTOR(8 downto 0);
-    tile_num:						IN STD_LOGIC_VECTOR(2 downto 0);
+    world_X, world_Y:			IN  STD_LOGIC_VECTOR(8 downto 0);
+    tile_num:					IN  STD_LOGIC_VECTOR(2 downto 0);
     red, green, blue:			OUT STD_LOGIC
     );
 END;
 
 ARCHITECTURE bhv of draw_map IS 
 	SIGNAL sub_X, sub_Y: STD_LOGIC_VECTOR(3 downto 0);
-	SIGNAL tile_addr: STD_LOGIC_VECTOR(10 downto 0);
-	SIGNAL tile_data: STD_LOGIC_VECTOR(2 downto 0);
+	SIGNAL tile_addr:    STD_LOGIC_VECTOR(10 downto 0);
+	SIGNAL tile_data:    STD_LOGIC_VECTOR(2 downto 0);
     
 	SUBTYPE tile_pixel IS integer RANGE 0 TO 7;
 	TYPE rom_type IS ARRAY(0 TO 2047) OF tile_pixel;
