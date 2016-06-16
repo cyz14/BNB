@@ -36,10 +36,10 @@ COMPONENT ram PORT(
     place_1:                        IN  STD_LOGIC;
 	 explode_X0:                     IN  STD_LOGIC_VECTOR(4 downto 0);
     explode_Y0:                     IN  STD_LOGIC_VECTOR(4 downto 0);
-    explode_0:                       IN  STD_LOGIC;
+    explode_0:                      IN  STD_LOGIC;
     explode_X1:                     IN  STD_LOGIC_VECTOR(4 downto 0);
     explode_Y1:                     IN  STD_LOGIC_VECTOR(4 downto 0);
-    explode_1:                       IN  STD_LOGIC
+    explode_1:                      IN  STD_LOGIC
 );
 END COMPONENT;
 
@@ -58,18 +58,20 @@ END COMPONENT;
     TYPE STATE_TYPE IS (IDLE, READ_KEY, GEN_DELTAS, COLL_START, COLL_DET, UPDATE, DONE );
     SIGNAL state: STATE_TYPE;
 
-    SIGNAL player_X0, player_Y0:    STD_LOGIC_VECTOR(4 downto 0);
+    SIGNAL player_X0:    STD_LOGIC_VECTOR(4 downto 0) := "00000";
+	 SIGNAL player_Y0:    STD_LOGIC_VECTOR(4 downto 0) := "00000";
     SIGNAL player_free0:            STD_LOGIC;
-    SIGNAL player_X1, player_Y1:    STD_LOGIC_VECTOR(4 downto 0);
+    SIGNAL player_X1:    STD_LOGIC_VECTOR(4 downto 0) := "10011";
+	 SIGNAL player_Y1:    STD_LOGIC_VECTOR(4 downto 0) := "01110";
     SIGNAL player_free1:            STD_LOGIC;
 	 
     SIGNAL player_dX0, player_dY0:  STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL player_dX1, player_dY1:  STD_LOGIC_VECTOR(4 downto 0);
 
-    CONSTANT delta0:                STD_LOGIC_VECTOR(4 downto 0) := "00000";
     CONSTANT minus1:                STD_LOGIC_VECTOR(4 downto 0) := "11111";
     CONSTANT plus1:                 STD_LOGIC_VECTOR(4 downto 0) := "00001";
     CONSTANT zero4:                 STD_LOGIC_VECTOR(3 downto 0) := "0000";
+	 CONSTANT zero5:                 STD_LOGIC_VECTOR(4 downto 0) := "00000";
 
     SIGNAL q1_x, q1_y:              STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL q1_s:                    STD_LOGIC_VECTOR(2 downto 0);
@@ -80,7 +82,7 @@ END COMPONENT;
 
     SIGNAL place_x0, place_y0:      STD_LOGIC_VECTOR(4 downto 0);
 	 SIGNAL place_x1, place_y1:      STD_LOGIC_VECTOR(4 downto 0);
-	 SIGNAL place_0, place_1: STD_LOGIC;    -- bubble place signal
+	 SIGNAL place_0, place_1:        STD_LOGIC;    -- bubble place signal
 	 
     SIGNAL explode_x0, explode_y0:  STD_LOGIC_VECTOR(4 downto 0);
 	 SIGNAL explode_x1, explode_y1:  STD_LOGIC_VECTOR(4 downto 0);
@@ -101,16 +103,10 @@ BEGIN
                         state <= READ_KEY;
                     END IF;
                 WHEN READ_KEY =>
-                    player_dX0 <= delta0;
-                    player_dY0 <= delta0;
-                    player_dX1 <= delta0;
-                    player_dY1 <= delta0;
-						  IF sexplode0 = '1' THEN
-						      place_0 <= '0';
-						  END IF;
-						  IF sexplode1 = '1' THEN
-						      place_1 <= '0';
-						  END IF;
+                    player_dX0 <= zero5;
+                    player_dY0 <= zero5;
+                    player_dX1 <= zero5;
+                    player_dY1 <= zero5;
                     state <= GEN_DELTAS;
                 WHEN GEN_DELTAS =>
                     CASE key0 IS
@@ -118,25 +114,25 @@ BEGIN
                             IF player_x0 /= "00000" THEN
                                 player_dX0 <= minus1;
                             ELSE
-                                player_dX0 <= delta0;
+                                player_dX0 <= zero5;
                             END IF;
                         WHEN "0001" => -- 0 up
                             IF player_y0 /= "00000" THEN
                                 player_dY0 <= minus1;
                             ELSE
-                                player_dY0 <= delta0;
+                                player_dY0 <= zero5;
                             END IF;
                         WHEN "0100" => -- 0 right
                             IF player_x0 /= "10011" THEN
                                 player_dX0 <= plus1;
                             ELSE
-                                player_dX0 <= delta0;
+                                player_dX0 <= zero5;
                             END IF;
                         WHEN "0011" => -- 0 down
                             IF player_y0 < "01110" THEN
                                 player_dY0 <= plus1;
                             ELSE
-                                player_dY0 <= delta0;
+                                player_dY0 <= zero5;
                             END IF;
                         when "0101" => -- 0 place bubble
 								    IF place_0 = '0' THEN
@@ -153,25 +149,25 @@ BEGIN
                             IF player_y1 /= "00000" THEN
                                 player_dY1 <= minus1;
                             ELSE
-                                player_dY1 <= delta0;
+                                player_dY1 <= zero5;
                             END IF;
                         WHEN "0111" => -- 1 left
                             IF player_x1 /= "00000" THEN
                                 player_dX1 <= minus1;
                             ELSE
-                                player_dX1 <= delta0;
+                                player_dX1 <= zero5;
                             END IF;
                         WHEN "1000" => -- 1 down
                             IF player_y1 /= "01110" THEN
                                 player_dY1 <= plus1;
                             ELSE
-                                player_dY1 <= delta0;
+                                player_dY1 <= zero5;
                             END IF;
                         WHEN "1001" => -- 1 right
                             IF player_x1 /= "10010" THEN
                                 player_dX1 <= plus1;
                             ELSE
-                                player_dX1 <= delta0;
+                                player_dX1 <= zero5;
                             END IF;
                         when "1010" => -- 1 place bubble
 								    IF place_1 = '0' THEN
@@ -199,10 +195,11 @@ BEGIN
                             player_Y1 <= "01110";
                             place_0 <= '0';
 									 place_1 <= '0';
+									 scnt := 0;
 									 state <= IDLE;
                     ELSE
                         scnt := scnt + 1;
-                        IF scnt = 5000 THEN
+                        IF scnt = 5000 THEN -- control move speed
                             scnt := 0;
                             IF q1_s = "000" THEN
                                 player_X0 <= q1_x;
@@ -216,13 +213,11 @@ BEGIN
                         end if;
                     END IF;
                 WHEN DONE =>
---					     player_dX0 <= delta0;
---						  player_dY0 <= delta0;
---						  player_dX1 <= delta0;
---						  player_dY1 <= delta0;
                     IF enable = '0' THEN
                         state <= IDLE;
                     END IF;
+						  place_0 <= '0';
+						  place_1 <= '0';
             END CASE;
         END IF;
     END IF;
@@ -249,36 +244,6 @@ BEGIN
         out_place_Y => explode_y1,
         s => sexplode1
     );
-	 
---	 PROCESS(sexplode0,sexplode1)
---	 BEGIN
---	     IF sexplode0 = '1' THEN
---			   sexplode <= '1';
---				explode_x <= explode_x0;
---				explode_y <= explode_y0;
---		  ELSIF sexplode1 = '1' THEN
---		      sexplode <= '1';
---				explode_x <= explode_x1;
---				explode_y <= explode_y1;
---		  ELSE
---		      sexplode <= '0';
---		  END IF;
---	 END PROCESS;
---	 
---	 PROCESS(place_0, place_1)
---	 BEGIN
---	     IF place_0 = '1' THEN
---		      place <= '1';
---				place_x <= place_x0;
---				place_y <= place_y0;
---		  ELSIF place_1 = '1' THEN
---		      place <= '1';
---				place_x <= place_x1;
---				place_y <= place_y1;
---		  ELSE
---		      place <= '0';
---		  END IF;
---	 END PROCESS;
 	 
     map_ram: ram PORT MAP(
       clock => clock,

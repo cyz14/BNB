@@ -133,10 +133,8 @@ ARCHITECTURE BNB OF BNB IS
     SIGNAL explo_data:                      STD_LOGIC_VECTOR(2 downto 0);
     
     SIGNAL map_r, map_g, map_b:             STD_LOGIC;
-    SIGNAL bub_r, bub_g, bub_b:             STD_LOGIC;
-    SIGNAL exp_r, exp_g, exp_b:             STD_LOGIC;
-    -- world positon for current pixel
-    SIGNAL world_X, world_Y:                STD_LOGIC_VECTOR(8 downto 0);
+    
+    SIGNAL world_X, world_Y:                STD_LOGIC_VECTOR(8 downto 0); -- world positon for current pixel
     SIGNAL tile_X, tile_Y:                  STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL player_X0, player_Y0:            STD_LOGIC_VECTOR(8 downto 0);
     SIGNAL player_X1, player_Y1:            STD_LOGIC_VECTOR(8 downto 0);
