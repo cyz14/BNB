@@ -4,9 +4,9 @@ USE ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
 ENTITY keyboard_id IS PORT(
-    clk:    IN  std_logic;
-    rst:    IN  std_logic;
-    code:   IN  std_logic_vector(7 downto 0);
+    clk:     IN  std_logic;
+    rst:     IN  std_logic;
+    code:    IN  std_logic_vector(7 downto 0);
     key_id0: OUT std_logic_vector(3 downto 0);
     key_id1: OUT std_logic_vector(3 downto 0)
 );
@@ -26,7 +26,7 @@ begin
             when WAITING =>
                 case code is 
                     --player 1
-                    when  "00010010" =>    -- 0X12
+                    when  "00010010" =>       -- 0X12
                         key_id0 <= "0101";
                     when "00011101" =>        -- 0X1d
                         key_id0 <= "0001";    -- UP
@@ -55,7 +55,7 @@ begin
             When PRESSED =>
                 case code is 
                     --player 1
-                    when  "00010010" =>    -- 0X12
+                    when  "00010010" =>       -- 0X12
                         key_id0 <= "0000";
                         state <= WAITING;
                     when "00011101" =>        -- 0X1d

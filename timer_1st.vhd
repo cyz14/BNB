@@ -4,15 +4,15 @@ USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY timer_1st IS PORT (
-		valid_in	   :		IN  std_logic;
-		rst			:		IN  std_logic;
-		clk24  		:		IN  std_logic; -- 24M clock
-		place_X		:		IN  std_logic_vector(4 downto 0);
-		place_Y		:		IN  std_logic_vector(4 downto 0);
-		out_place_X	:		OUT std_logic_vector(4 downto 0);
-		out_place_Y	:	 	OUT std_logic_vector(4 downto 0);
-		is_working  :     OUT std_logic;
-		s          	:		OUT std_logic
+		valid_in    :       IN  std_logic;
+		rst         :       IN  std_logic;
+		clk24       :       IN  std_logic; -- 24M clock
+		place_X     :       IN  std_logic_vector(4 downto 0);
+		place_Y     :       IN  std_logic_vector(4 downto 0);
+		out_place_X :       OUT std_logic_vector(4 downto 0);
+		out_place_Y :       OUT std_logic_vector(4 downto 0);
+		is_working  :       OUT std_logic;
+		s           :       OUT std_logic
 	);
 END timer_1st;
 
@@ -20,9 +20,9 @@ ARCHITECTURE timer_1st OF timer_1st IS
 	SIGNAL s_tmp : std_logic;
 	TYPE timer_state IS (SWAIT, STIME);
 	SIGNAL state: timer_state := SWAIT;
-	SIGNAL tmp_x, tmp_y:		STD_LOGIC_VECTOR(4 downto 0);
+	SIGNAL tmp_x, tmp_y:        STD_LOGIC_VECTOR(4 downto 0);
 BEGIN
-   s <= s_tmp;
+	s <= s_tmp;
 	PROCESS(rst, clk24, valid_in)
 		VARIABLE cnt : integer RANGE 0 TO 24000000;
 		VARIABLE add : integer RANGE 0 to 1;
@@ -62,10 +62,10 @@ BEGIN
 	BEGIN
 		CASE state IS
 			when SWAIT =>
-			    is_working <= '0';
-		   when STIME =>
-			    is_working <= '1';
-	   END CASE;
+				is_working <= '0';
+			when STIME =>
+				is_working <= '1';
+		END CASE;
 	END PROCESS;
 	
 END timer_1st;

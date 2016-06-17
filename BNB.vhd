@@ -64,9 +64,9 @@ ARCHITECTURE BNB OF BNB IS
     END COMPONENT;
     
     COMPONENT keyboard PORT (
-        datain, clkin:          IN  std_logic ;  -- PS2 clk and data
-        fclk, rst:              IN  std_logic ;  -- filter clock
-        scancode:               OUT std_logic_vector(7 downto 0) -- scan code signal output
+        datain, clkin:              IN  std_logic ;  -- PS2 clk and data
+        fclk, rst:                  IN  std_logic ;  -- filter clock
+        scancode:                   OUT std_logic_vector(7 downto 0) -- scan code signal output
     ) ;
     END COMPONENT;
 
@@ -104,12 +104,12 @@ ARCHITECTURE BNB OF BNB IS
     CONSTANT background_r:  STD_LOGIC_VECTOR(2 downto 0) := zero3;
     CONSTANT background_g:  STD_LOGIC_VECTOR(2 downto 0) := zero3;
     CONSTANT background_b:  STD_LOGIC_VECTOR(2 downto 0) := zero3;
-    constant player0_r:     STD_LOGIC_VECTOR(2 downto 0) := "001";
-    constant player0_g:     STD_LOGIC_VECTOR(2 downto 0) := "000";
-    constant player0_b:     STD_LOGIC_VECTOR(2 downto 0) := "010";
-    constant player1_r:     STD_LOGIC_VECTOR(2 downto 0) := "100";
-    constant player1_g:     STD_LOGIC_VECTOR(2 downto 0) := "000";
-    constant player1_b:     STD_LOGIC_VECTOR(2 downto 0) := "001";
+    CONSTANT player0_r:     STD_LOGIC_VECTOR(2 downto 0) := "001";
+    CONSTANT player0_g:     STD_LOGIC_VECTOR(2 downto 0) := "000";
+    CONSTANT player0_b:     STD_LOGIC_VECTOR(2 downto 0) := "010";
+    CONSTANT player1_r:     STD_LOGIC_VECTOR(2 downto 0) := "100";
+    CONSTANT player1_g:     STD_LOGIC_VECTOR(2 downto 0) := "000";
+    CONSTANT player1_b:     STD_LOGIC_VECTOR(2 downto 0) := "001";
     
     SIGNAL player_r:                        STD_LOGIC_VECTOR(2 downto 0);
     SIGNAL player_g:                        STD_LOGIC_VECTOR(2 downto 0);
@@ -126,9 +126,6 @@ ARCHITECTURE BNB OF BNB IS
     SIGNAL scancode:                        STD_LOGIC_VECTOR(7 downto 0);
     SIGNAL key0, key1:                             STD_LOGIC_VECTOR(3 downto 0);
     
-    SIGNAL bub_data:                        STD_LOGIC_VECTOR(2 downto 0);
-    SIGNAL explo_data:                      STD_LOGIC_VECTOR(2 downto 0);
-    
     SIGNAL map_r, map_g, map_b:             STD_LOGIC;
     
     SIGNAL world_X, world_Y:                STD_LOGIC_VECTOR(8 downto 0); -- world positon for current pixel
@@ -138,8 +135,6 @@ ARCHITECTURE BNB OF BNB IS
     SIGNAL free0, free1:                    STD_LOGIC := '1';
     SIGNAL play_out0:                       STD_LOGIC;
     SIGNAL play_out1:                       STD_LOGIC;
-    
-    SIGNAL explode_X, explode_Y:            STD_LOGIC_VECTOR(8 downto 0);
     
     SIGNAL map_read_X, map_read_Y:          STD_LOGIC_VECTOR(4 downto 0);
     SIGNAL map_state:                       STD_LOGIC_VECTOR(2 downto 0);
@@ -176,7 +171,7 @@ BEGIN
     world_Y <= V_count(9 downto 1);
     tile_X <= H_count(9 downto 5);
     tile_Y <= V_count(9 downto 5);
-    dmap: draw_map PORT MAP (
+    dmap: draw_map PORT MAP ( -- query map info and return map RGB
         world_X  => world_X,
         world_Y  => world_Y,
         tile_num => map_state,
@@ -184,7 +179,7 @@ BEGIN
         green => map_g,
         blue  => map_b
     );
-    player: draw_sprite PORT MAP (
+    player: draw_sprite PORT MAP ( -- query players to check if player is at the current position
         clock => clock_25,
         world_X => world_X,
         world_Y => world_Y,
@@ -209,45 +204,45 @@ BEGIN
         rst => key_reset,
         scancode => scancode
     );
-    key_id: keyboard_id PORT MAP (
+    key_id: keyboard_id PORT MAP (  -- divide scancode to two players' control key
         clk  => clock_100,
         code => scancode,
         rst  => key_reset,
         key_id0 => key0,
         key_id1 => key1
     );
-    seg0: seg7 PORT MAP (
+    seg0: seg7 PORT MAP (           -- show player0's key
         code => key0,
         seg_out => move0
     );
-    seg1: seg7 PORT MAP (
+    seg1: seg7 PORT MAP (           -- show player1's key
         code => key1,
         seg_out => move1
     );
-    test_logic: test PORT MAP(
+    test_logic: test PORT MAP(      -- game logic, including: player movement collision check, bubble place check, bubble explosion check, and map update
         clock  => clock_25,
         reset  => reset,
         enable => logic_enable,
         key0 => key0,
         key1 => key1,
-        Q_tile_X => map_read_X,
-        Q_tile_Y => map_read_Y,
+        Q_tile_X => map_read_X,     -- query f map to draw
+        Q_tile_Y => map_read_Y,     -- query f map to draw
         Q_tile_type => map_state,
-        out_player_X0 => player_X0,
+        out_player_X0 => player_X0, -- player_0 coordinates
         out_player_Y0 => player_Y0,
-        out_player_X1 => player_X1,
+        out_player_X1 => player_X1, -- player_1 coordinates
         out_player_Y1 => player_Y1,
         out_free0 => free0,
         out_free1 => free1
     );
     
     address_32 <= V_count(4 downto 0) & H_count(4 downto 0);
-    dao: dao_rom PORT MAP (
+    dao: dao_rom PORT MAP (         -- player image
         address => address_32,
         clock => clock_25,
         q => q_dao
     );
-    dizni: dizni_rom PORT MAP (
+    dizni: dizni_rom PORT MAP (     -- player image
         address => address_32,
         clock => clock_25,
         q => q_dizni

@@ -5,17 +5,17 @@ use ieee.std_logic_arith.all;
 
 entity Keyboard is
 port (
-	datain, clkin : in std_logic ;               -- PS2 clk and data
-	fclk, rst : in std_logic ;                   -- filter clock
-	scancode : out std_logic_vector(7 downto 0)  -- scan code signal output
-	);
+    datain, clkin : in std_logic ;                    -- PS2 clk and data
+    fclk, rst :     in std_logic ;                    -- filter clock
+    scancode :      out std_logic_vector(7 downto 0)  -- scan code signal output
+    );
 end Keyboard ;
 
 architecture rtl of Keyboard is
 	type state_type is (delay, start, d0, d1, d2, d3, d4, d5, d6, d7, parity, stop, finish) ;
 	signal data, clk, clk1, clk2, odd: std_logic ;
-	signal code : std_logic_vector(7 downto 0) ; 
-	signal fok: std_logic_vector(0 to 2);
+	signal code: std_logic_vector(7 downto 0) ; 
+	signal fok:   std_logic_vector(0 to 2);
 	signal state : state_type ;
 begin
     -- remove glitch
