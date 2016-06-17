@@ -220,10 +220,10 @@ BEGIN
         code => key0,
         seg_out => move0
     );
-	 seg1: seg7 PORT MAP (
-	     code => key1,
-		  seg_out => move1
-	 );
+    seg1: seg7 PORT MAP (
+        code => key1,
+        seg_out => move1
+    );
     test_logic: test PORT MAP(
         clock  => clock_25,
         reset  => reset,
@@ -286,9 +286,9 @@ BEGIN
                         b <= "111";
                     END IF;
                 ELSE
-						  r <= map_r & "00";
-						  g <= map_g & "00";
-						  b <= map_b & "00";
+                    r <= map_r & "00";
+                    g <= map_g & "00";
+                    b <= map_b & "00";
                 END IF;
             END IF;
         END IF;

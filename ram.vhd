@@ -1,7 +1,6 @@
 LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.all;
-USE IEEE.NUMERIC_STD.all;
---USE IEEE.STD_LOGIC_ARITH.all;
+USE IEEE.STD_LOGIC_ARITH.all;
 USE IEEE.STD_LOGIC_UNSIGNED.all;
 
 ENTITY ram IS PORT(
@@ -33,6 +32,8 @@ ARCHITECTURE map_ram OF ram IS
     TYPE ram_type IS ARRAY(0 to 479) OF map_tile;
     SIGNAL tile0:               map_tile;
     SIGNAL tile1:               map_tile;
+	 SIGNAL place_tile0:         map_tile;
+	 SIGNAL place_tile1:         map_tile;
 
     CONSTANT wid:            integer:=32;
     CONSTANT stone: map_tile := "100";
@@ -41,19 +42,54 @@ ARCHITECTURE map_ram OF ram IS
     SIGNAL Q1_addr:            STD_LOGIC_VECTOR(9 downto 0);
     SIGNAL Q2_addr:            STD_LOGIC_VECTOR(9 downto 0);
 
-    SIGNAL place_addr_0:        STD_LOGIC_VECTOR(9 downto 0);
-    SIGNAL place_addr_1:        STD_LOGIC_VECTOR(9 downto 0);
+	 TYPE PLACE_STATE IS (PLACE_WAIT, PLACE_START, PLACE_END, PLACE_DONE);
+	 TYPE ESTATE IS (EWAIT, ECUR_START, ECUR_END, EUP_START, EUP_END, ERIGHT_START, ERIGHT_END, EDOWN_START, EDOWN_END, ELEFT_START, ELEFT_END);
+	 
+	 SIGNAL state_place_0:      PLACE_STATE := PLACE_WAIT;	 
+	 SIGNAL place_addr_0:       STD_LOGIC_VECTOR(9 downto 0);
+	 SIGNAL place_start_0:      STD_LOGIC;
+	 SIGNAL place_valid_0:      STD_LOGIC;
+	 
+	 SIGNAL state_place_1:      PLACE_STATE := PLACE_WAIT;
+    SIGNAL place_addr_1:       STD_LOGIC_VECTOR(9 downto 0);
+	 SIGNAL place_start_1:      STD_LOGIC;
+	 SIGNAL place_valid_1:      STD_LOGIC;
 
+	 SIGNAL explo_state0:     ESTATE;
     SIGNAL explo_addr_0:       STD_LOGIC_VECTOR(9 downto 0);
-    SIGNAL explo_addr_1:       STD_LOGIC_VECTOR(9 downto 0);
-    SIGNAL det_valid:          STD_LOGIC;
-    
-    TYPE ESTATE IS (EWAIT, ECUR_START, ECUR_END, EUP_START, EUP_END, ERIGHT_START, ERIGHT_END, EDOWN_START, EDOWN_END, ELEFT_START, ELEFT_END);
-    SIGNAL explo_state0:     ESTATE;
-    SIGNAL explo_state1:     ESTATE;
+	 SIGNAL det_start_0:        STD_LOGIC;
+    SIGNAL det_valid_0:        STD_LOGIC;
+	 SIGNAL det_result_0:       STD_LOGIC;
+	 
+	 SIGNAL explo_state1:     ESTATE;
+	 SIGNAL explo_addr_1:       STD_LOGIC_VECTOR(9 downto 0);
+	 SIGNAL det_start_1:        STD_LOGIC;
+	 SIGNAL det_valid_1:        STD_LOGIC;
+	 SIGNAL det_result_1:       STD_LOGIC;
+	 
+    SIGNAL add0, add1:       STD_LOGIC_VECTOR(9 downto 0) := CONV_STD_LOGIC_VECTOR(0, 10);
+	 SIGNAL sum0, sum1:       STD_LOGIC_VECTOR(9 downto 0) := CONV_STD_LOGIC_VECTOR(0, 10);
     shared VARIABLE ram:     ram_type;
+	 
+	 SIGNAL valid_0:    					 STD_LOGIC;
+	 SIGNAL valid_1:    					 STD_LOGIC;
+	 SHARED VARIABLE explode_num0:    integer:=0;
+	 SHARED VARIABLE detect_num0:     integer:=0;
+	 SHARED VARIABLE explode_num1:    integer:=0;
+	 SHARED VARIABLE detect_num1:     integer:=0;
+	 SHARED VARIABLE place_num0:      integer:=0;
+	 SHARED VARIABLE place_num1:      integer:=0;
+	 SHARED VARIABLE place_num:       integer:=0;
 BEGIN
+	 PROCESS(explode_X0, explode_Y0, explode_X1, explode_Y1)
+	 BEGIN
+		 explo_addr_0 <= explode_Y0 & explode_X0;
+		 explo_addr_1 <= explode_Y1 & explode_X1;
 
+		 explode_num0 := conv_integer(explo_addr_0);
+		 explode_num1 := conv_integer(explo_addr_1);
+	 END PROCESS;
+	 
     PROCESS (Q_X, Q_Y, Q1_X, Q1_Y, Q2_X, Q2_Y)
         VARIABLE i2: integer;
         VARIABLE i1: integer;
@@ -62,32 +98,22 @@ BEGIN
         Q_addr  <= Q_Y  & Q_X;
         Q1_addr <= Q1_Y & Q1_X;
         Q2_addr <= Q2_Y & Q2_X;
-        i0 := to_integer(unsigned(Q_addr));
-        i1 := to_integer(unsigned(Q1_addr));
-        i2 := to_integer(unsigned(Q2_addr));
+        i0 := conv_integer(unsigned(Q_addr));
+        i1 := conv_integer(unsigned(Q1_addr));
+        i2 := conv_integer(unsigned(Q2_addr));
         Q_S  <= ram(i0);
         Q1_S <= ram(i1);
         Q2_S <= ram(i2);
     END PROCESS;
 
     PROCESS(clock, rst, place_X0, place_Y0, place_X1, place_Y1)
-        VARIABLE place_num0:      integer:=0;
-        VARIABLE place_num1:      integer:=0;
-        VARIABLE explode_num0:    integer:=0;
-        VARIABLE detect_num0:     integer:=0;
-        VARIABLE explode_num1:    integer:=0;
-        VARIABLE detect_num1:     integer:=0;
     BEGIN
         place_addr_0 <= place_Y0 & place_X0;
         place_addr_1 <= place_Y1 & place_X1;
+		  
         place_num0 := conv_integer(place_addr_0);
         place_num1 := conv_integer(place_addr_1);
-        
-        explo_addr_0 <= explode_Y0 & explode_X0;
-        explo_addr_1 <= explode_Y1 & explode_X1;
-        explode_num0 := conv_integer(explo_addr_0);
-        explode_num1 := conv_integer(explo_addr_1);
-
+		  
         IF rst='0' THEN
             explo_state0 <= EWAIT;
             explo_state1 <= EWAIT;
@@ -109,141 +135,235 @@ BEGIN
                 "000","000","111","110","001","000","100","000","000","000","000","000","000","000","000","100","000","000","000","000","110","000","000","100","111","110","000","000","100","000","000","000"
 );
         ELSIF clock'Event AND clock = '1' THEN
-            IF place_0 = '1' and ram(place_num0)="000" THEN
-                ram(place_num0):="010"; 
-            END IF;
-
-            IF place_1 = '1' and ram(place_num1) = "000" THEN
-                ram(place_num1):="010"; 
-            END IF;
+		      IF place_0 = '1' THEN
+					CASE state_place_0 IS
+						WHEN PLACE_WAIT =>
+							state_place_0 <= PLACE_START;
+						WHEN PLACE_START =>
+							 place_start_0 <= '1';
+							 place_valid_0 <= '0';
+							state_place_0 <= PLACE_END;
+						WHEN PLACE_END =>
+							place_start_0 <= '0';
+							place_valid_0 <= '1';
+							state_place_0 <= PLACE_DONE;
+						WHEN PLACE_DONE =>
+							IF place_valid_0 = '1' THEN
+								place_valid_0 <= '0';
+								state_place_0 <= PLACE_WAIT;
+							END IF;
+					END CASE;
+					IF place_start_0 = '1' THEN
+						place_tile0 <= ram(place_num0);
+					ELSIF place_valid_0 = '1' THEN
+					   IF place_tile0 = "000" THEN
+							ram(place_num0) := "010";
+						END IF;
+					END IF;
+				END IF; -- place_0 = '1'
+				
+				IF place_1 = '1' THEN
+					CASE state_place_1 IS
+						WHEN PLACE_WAIT =>
+							state_place_1 <= PLACE_START;
+						WHEN PLACE_START =>
+							place_start_1 <= '1';
+							place_valid_1 <= '0';
+							state_place_1 <= PLACE_END;
+						WHEN PLACE_END =>
+							place_start_1 <= '0';
+							place_valid_1 <= '1';
+							state_place_1 <= PLACE_DONE;
+						WHEN PLACE_DONE =>
+							IF place_valid_1 = '1' THEN
+								place_valid_1 <= '0';
+								state_place_1 <= PLACE_WAIT;
+							END IF;
+					END CASE;
+					
+					IF place_start_1 = '1' THEN
+						place_tile1 <= ram(place_num1);
+					ELSIF place_valid_1 = '1' THEN
+						IF place_tile1 = "000" THEN
+							ram(place_num1) := "010";
+						END IF;
+					END IF;
+				END IF;
 
             IF explode_0 = '1' THEN
                 CASE explo_state0 IS
                     WHEN EWAIT => 
                         explo_state0 <= ECUR_START;
                     WHEN ECUR_START =>
-                        detect_num0 := explode_num0;
-                        tile0 <= ram(explode_num0);
+								det_start_0 <= '1';
+								add0 <= CONV_STD_LOGIC_VECTOR(0, 10);
                         explo_state0 <= ECUR_END;
                     WHEN ECUR_END =>
-                        IF tile0 = "010" THEN
-                            ram(detect_num0) := "011";
-                        ELSIF tile0 = "011" THEN
-                            ram(detect_num0) := "000";
+								det_start_0 <= '0';
+                        IF det_valid_0 = '1' THEN
+								    explo_state0 <= EUP_START;
                         END IF;
-                        explo_state0 <= EUP_START;
                     WHEN EUP_START =>
-                        IF explode_num0 >= wid THEN
-                            detect_num0 := explode_num0 - wid;
-                            tile0 <= ram(detect_num0);
+                        IF explo_addr_0 >= 32 THEN
+                            det_start_0 <= '1';
+                            add0 <= CONV_STD_LOGIC_VECTOR(-32, 10);
                             explo_state0 <= EUP_END;
                         ELSE
                             explo_state0 <= ERIGHT_START;
                         END IF;
                     WHEN EUP_END =>
-                        IF tile0 /= stone then
-                            ram(detect_num0) := "000"; 
-                        END IF;
-                        explo_state0 <= ERIGHT_START;
+                        det_start_0 <= '0';
+                        IF det_valid_0 = '1' THEN
+								    explo_state0 <= ERIGHT_START;
+								END IF;
                     WHEN ERIGHT_START =>
-                        detect_num0 := explode_num0 + 1;
-                        tile0 <= ram(detect_num0);
+								det_start_0 <= '1';
+                        add0 <= CONV_STD_LOGIC_VECTOR(1, 10);
                         explo_state0 <= ERIGHT_END;
                     WHEN ERIGHT_END =>
-                        if tile0 /= stone then
-                            ram(detect_num0) := "000";
-                        end if;
-                        explo_state0 <= EDOWN_START;
+								det_start_0 <= '0';
+								if det_valid_0 <= '1' then
+									explo_state0 <= EDOWN_START;
+								END IF;
                     WHEN EDOWN_START =>
-                        detect_num0 := explode_num0 + wid;
-                        tile0 <= ram(detect_num0);
+								det_start_0 <= '1';
+                        add0 <= CONV_STD_LOGIC_VECTOR(wid, 10);
                         explo_state0 <= EDOWN_END;
                     WHEN EDOWN_END =>
-                        if tile0 /= stone then
-                            ram(detect_num0) := "000";
-                        end if;
-                        explo_state0 <= ELEFT_START;
+								det_start_0 <= '0';
+								if det_valid_0 = '1' then
+									explo_state0 <= ELEFT_START;
+								end if;
                     WHEN ELEFT_START =>
+								det_start_0 <= '1';
                         if explode_num0 > 0 then
-                            detect_num0 := explode_num0 - 1;
-                            tile0 <= ram(detect_num0);
+                            add0 <= CONV_STD_LOGIC_VECTOR(-1, 10);
                             explo_state0 <= ELEFT_END;
                         else
                             explo_state0 <= EWAIT;
                         end if;
                     WHEN ELEFT_END =>
-                        if tile0 /= stone then
-                            ram(detect_num0) := "000";
-                        end if;
-                        explo_state0 <= EWAIT;
+								det_start_0 <= '0';
+								if det_valid_0 = '1' then
+									explo_state0 <= EWAIT;
+								end if;
                     WHEN others =>
                         explo_state0 <= EWAIT;
                 END CASE;
+					 if det_valid_0 = '1' AND tile0 /= stone then
+						  ram(detect_num0) := "000";
+					 END IF; 
             END IF;
-
+				
             IF explode_1 = '1' THEN
                 CASE explo_state1 IS
                     WHEN EWAIT => 
                         explo_state1 <= ECUR_START;
                     WHEN ECUR_START =>
-                        detect_num1 := explode_num1;
-                        tile1 <= ram(explode_num1);
+                        det_start_1 <= '1';
+                        add1 <= CONV_STD_LOGIC_VECTOR(0, 10);
                         explo_state1 <= ECUR_END;
                     WHEN ECUR_END =>
-                        IF tile1 = "010" THEN
-                            ram(detect_num1) := "000";
+								det_start_1 <= '0';
+                        IF det_valid_1 = '1' THEN
                             explo_state1 <= EUP_START;
-                        ELSE
-                            explo_state1 <= EWAIT;
                         END IF;
                     WHEN EUP_START =>
-                        IF explode_num1 >= wid THEN
-                            detect_num1 := explode_num1 - wid;
-                            tile1 <= ram(detect_num1);
+                        IF explo_addr_1 >= 32 THEN
+                            det_start_1 <= '1';
+                            add1 <= CONV_STD_LOGIC_VECTOR(-32, 10);
                             explo_state1 <= EUP_END;
                         ELSE
                             explo_state1 <= ERIGHT_START;
                         END IF;
                     WHEN EUP_END =>
-                        IF tile1 /= stone then
-                            ram(detect_num1) := "000"; 
+								det_start_1 <= '0';
+                        IF det_valid_1 = '1' then
+									explo_state1 <= ERIGHT_START;
                         END IF;
-                        explo_state1 <= ERIGHT_START;
                     WHEN ERIGHT_START =>
-                        detect_num1 := explode_num1 + 1;
-                        tile1 <= ram(detect_num1);
+								det_start_1 <= '1';
+                        add1 <= CONV_STD_LOGIC_VECTOR(1, 10);
                         explo_state1 <= ERIGHT_END;
                     WHEN ERIGHT_END =>
-                        if tile1 /= stone then
-                            ram(detect_num1) := "000";
+								det_start_1 <= '0';
+                        if det_valid_1 = '1' then
+                            explo_state1 <= EDOWN_START;
                         end if;
-                        explo_state1 <= EDOWN_START;
                     WHEN EDOWN_START =>
-                        detect_num1 := explode_num1 + wid;
-                        tile1 <= ram(detect_num1);
+                        det_start_1 <= '1';
+                        add1 <= CONV_STD_LOGIC_VECTOR(32, 10);
                         explo_state1 <= EDOWN_END;
                     WHEN EDOWN_END =>
-                        if tile1 /= stone then
-                            ram(detect_num1) := "000";
+								det_start_1 <= '0';
+                        if det_valid_1 = '1' then
+									explo_state1 <= ELEFT_START;
                         end if;
-                        explo_state1 <= ELEFT_START;
                     WHEN ELEFT_START =>
-                        if explode_num1 > 0 then
-                            detect_num1 := explode_num1 - 1;
-                            tile1 <= ram(detect_num1);
+                        if explo_addr_1 > 0 then
+									 det_start_1 <= '1';
+                            add1 <= CONV_STD_LOGIC_VECTOR(-1, 10);
                             explo_state1 <= ELEFT_END;
                         else
                             explo_state1 <= EWAIT;
                         end if;
                     WHEN ELEFT_END =>
-                        if tile1 /= stone then
-                            ram(detect_num1) := "000";
+								det_start_1 <= '0';
+                        if det_valid_1 = '1' then
+                            explo_state1 <= EWAIT;
                         end if;
-                        explo_state1 <= EWAIT;
                     WHEN others =>
                         explo_state1 <= EWAIT;
                 END CASE;
+					 if det_valid_1 = '1' AND tile1 /= stone then
+						  ram(detect_num1) := "000";
+					 END IF; 
             END IF;
         END IF;
     END PROCESS;
+
+    PROCESS(clock, det_start_0, explo_addr_0, add0)
+    BEGIN
+	     IF rising_edge(clock) THEN
+			  IF det_start_0 = '1' THEN
+					valid_0 <= '0';
+					det_result_0 <= '0';
+			  ELSE
+					sum0 <= explo_addr_0 + add0;
+					detect_num0 := CONV_INTEGER(sum0);
+					tile0 <= ram(detect_num0);
+					valid_0 <= '1';
+			  END IF;
+			  
+			  IF valid_0 = '1' AND tile0 = stone THEN
+					det_result_0 <= '1';
+			  ELSE 
+					det_result_0 <= '0';
+			  END IF;
+        END IF;
+    END PROCESS;
+	 det_valid_0 <= valid_0;
+	 
+	 PROCESS(clock, det_start_1, explo_addr_1, add1)
+    BEGIN
+	     IF rising_edge(clock) THEN
+			  IF det_start_1 = '1' THEN
+					valid_1 <= '0';
+					det_result_1 <= '0';
+			  ELSE
+					sum1 <= explo_addr_1 + add1;
+					detect_num1 := CONV_INTEGER(sum1);
+					tile1 <= ram(detect_num1);
+					valid_1 <= '1';
+			  END IF;
+			  
+			  IF valid_1 = '1' AND tile1 = stone THEN
+					det_result_1 <= '1';
+			  ELSE 
+					det_result_1 <= '0';
+			  END IF;
+        END IF;
+    END PROCESS;
+	 det_valid_1 <= valid_1;
+	 
 END map_ram;
