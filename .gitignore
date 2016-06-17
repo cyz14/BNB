@@ -1,12 +1,12 @@
 *.vhd.bak
-simulation/
 db/
+simulation/
 incremental_db/
+output_files/
+greybox_tmp/
 *.cdf
 *.jdi
 *.mif
 *.cmp
 *.qip
-output_files/
-greybox_tmp/
-img/*.bmp
+*.qdf
