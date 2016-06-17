@@ -1,0 +1,103 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2012 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 64-Bit
+# Version 12.1 Build 177 11/07/2012 SJ Full Version
+# Date created = 14:47:22  June 02, 2016
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		BNB_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone II"
+set_global_assignment -name DEVICE EP2C20Q240C8
+set_global_assignment -name TOP_LEVEL_ENTITY BNB
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 12.1
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:47:22  JUNE 02, 2016"
+set_global_assignment -name LAST_QUARTUS_VERSION 12.1
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_location_assignment PIN_210 -to clock_100
+set_location_assignment PIN_230 -to b[2]
+set_location_assignment PIN_228 -to b[1]
+set_location_assignment PIN_226 -to b[0]
+set_location_assignment PIN_233 -to g[2]
+set_location_assignment PIN_232 -to g[1]
+set_location_assignment PIN_231 -to g[0]
+set_location_assignment PIN_237 -to hs
+set_location_assignment PIN_236 -to r[2]
+set_location_assignment PIN_235 -to r[1]
+set_location_assignment PIN_234 -to r[0]
+set_location_assignment PIN_153 -to reset
+set_location_assignment PIN_238 -to vs
+set_location_assignment PIN_195 -to key_clock
+set_location_assignment PIN_194 -to key_data_in
+set_location_assignment PIN_212 -to clock_24
+set_global_assignment -name VHDL_FILE video_sync.vhd
+set_global_assignment -name VHDL_FILE BNB.vhd
+set_global_assignment -name VHDL_FILE draw_map.vhd
+set_global_assignment -name VHDL_FILE draw_sprite.vhd
+set_global_assignment -name VHDL_FILE sw_coll_det.vhd
+set_global_assignment -name CDF_FILE Chain2.cdf
+set_global_assignment -name VHDL_FILE keyboard.vhd
+set_global_assignment -name VHDL_FILE player_rom.vhd
+set_global_assignment -name VHDL_FILE test.vhd
+set_global_assignment -name VHDL_FILE keyboard_id.vhd
+set_global_assignment -name VHDL_FILE seg7.vhd
+set_global_assignment -name VHDL_FILE dao_rom.vhd
+set_global_assignment -name VHDL_FILE ram.vhd
+set_global_assignment -name QIP_FILE bubble_rom.qip
+set_global_assignment -name VHDL_FILE coll_det.vhd
+set_global_assignment -name QIP_FILE dizni_rom.qip
+set_location_assignment PIN_208 -to move0[6]
+set_location_assignment PIN_203 -to move0[5]
+set_location_assignment PIN_200 -to move0[4]
+set_location_assignment PIN_68 -to move0[3]
+set_location_assignment PIN_70 -to move0[2]
+set_location_assignment PIN_72 -to move0[1]
+set_location_assignment PIN_73 -to move0[0]
+set_location_assignment PIN_170 -to move1[6]
+set_location_assignment PIN_171 -to move1[5]
+set_location_assignment PIN_173 -to move1[4]
+set_location_assignment PIN_174 -to move1[3]
+set_location_assignment PIN_175 -to move1[2]
+set_location_assignment PIN_177 -to move1[1]
+set_location_assignment PIN_178 -to move1[0]
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

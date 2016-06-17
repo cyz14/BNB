@@ -4,7 +4,6 @@ db/
 incremental_db/
 *.cdf
 *.jdi
-*.qsf
 *.mif
 *.cmp
 *.qip
